@@ -20,14 +20,15 @@ import {
   dbUpsertAddress, dbDeleteAddress,
   dbUpsertPromotion, dbDeletePromotion,
   dbInsertOrder, dbUpdateOrder, dbDeleteOrder,
-  dbUpdateSettings
+  dbUpdateSettings,
+  signInAdmin, signOutAdmin, getSession, changeAdminPassword, onAuthStateChange
 } from './supabase';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU') + ' KGS';
-const ADMIN_PASSWORD = '7505566771Aatortowo';
 const WA_NUMBER = '996508752775';
 const TG_HANDLE = 'KALLISTO_75';
-/* localStorage key removed — using Supabase now */
+const COOLDOWN_MS = 5 * 60 * 1000; // 5 минут кулдаун при неудачном входе
+const MAX_ATTEMPTS = 3;
 
 /* ─── Small UI Components ─── */
 const Crosshairs: React.FC<{ color?: string }> = ({ color = 'border-volt' }) => (
@@ -581,8 +582,15 @@ const App: React.FC = () => {
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newCategoryForm, setNewCategoryForm] = useState({ name: '', nameEn: '', color: '#ADFF2F' });
   const [showNewCategory, setShowNewCategory] = useState(false);
+  const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-  const [passwordError, setPasswordError] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [cooldownLeft, setCooldownLeft] = useState(0);
+  const [authLoading, setAuthLoading] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordChangeMsg, setPasswordChangeMsg] = useState('');
 
   // Address editing
   const [editingAddress, setEditingAddress] = useState<StoreAddress | null>(null);
@@ -616,13 +624,73 @@ const App: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
-  /* ── Admin Login ── */
-  const handleAdminLogin = () => {
-    if (adminPassword === ADMIN_PASSWORD) {
-      setIsAdmin(true);
-      setPasswordError(false);
+  /* ── Admin Auth via Supabase ── */
+  // Check session on mount
+  useEffect(() => {
+    getSession().then(session => {
+      if (session) setIsAdmin(true);
+    });
+    const { data: { subscription } } = onAuthStateChange(session => {
+      setIsAdmin(!!session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldownUntil <= Date.now()) { setCooldownLeft(0); return; }
+    const iv = setInterval(() => {
+      const left = Math.max(0, cooldownUntil - Date.now());
+      setCooldownLeft(left);
+      if (left <= 0) clearInterval(iv);
+    }, 1000);
+    return () => clearInterval(iv);
+  }, [cooldownUntil]);
+
+  const handleAdminLogin = async () => {
+    if (cooldownLeft > 0) return;
+    if (!adminEmail || !adminPassword) { setPasswordError('Введите email и пароль'); return; }
+    setAuthLoading(true);
+    setPasswordError('');
+    const { error } = await signInAdmin(adminEmail, adminPassword);
+    setAuthLoading(false);
+    if (error) {
+      const attempts = loginAttempts + 1;
+      setLoginAttempts(attempts);
+      if (attempts >= MAX_ATTEMPTS) {
+        const until = Date.now() + COOLDOWN_MS;
+        setCooldownUntil(until);
+        setCooldownLeft(COOLDOWN_MS);
+        setLoginAttempts(0);
+        setPasswordError(`Слишком много попыток. Подождите 5 минут.`);
+      } else {
+        setPasswordError(`Неверный email или пароль (попытка ${attempts}/${MAX_ATTEMPTS})`);
+      }
     } else {
-      setPasswordError(true);
+      setIsAdmin(true);
+      setPasswordError('');
+      setLoginAttempts(0);
+      setAdminPassword('');
+    }
+  };
+
+  const handleAdminLogout = async () => {
+    await signOutAdmin();
+    setIsAdmin(false);
+  };
+
+  const handlePasswordChange = async () => {
+    if (!newPassword || newPassword.length < 8) {
+      setPasswordChangeMsg('Пароль должен быть минимум 8 символов');
+      return;
+    }
+    const { error } = await changeAdminPassword(newPassword);
+    if (error) {
+      setPasswordChangeMsg('Ошибка: ' + error.message);
+    } else {
+      setPasswordChangeMsg('✅ Пароль успешно изменён!');
+      setNewPassword('');
+      setTimeout(() => setPasswordChangeMsg(''), 3000);
     }
   };
 
@@ -1481,14 +1549,26 @@ const App: React.FC = () => {
                 <Crosshairs color="border-cyber/30" />
                 <Lock className="w-12 h-12 text-white/20 mx-auto mb-6" />
                 <h3 className="text-sm font-black tracking-[0.2em] text-cyber mb-6">{t.enterPassword}</h3>
-                <input type="password" value={adminPassword} onChange={e => { setAdminPassword(e.target.value); setPasswordError(false); }}
+                <input type="email" value={adminEmail} onChange={e => { setAdminEmail(e.target.value); setPasswordError(''); }}
+                  placeholder="Email"
+                  disabled={cooldownLeft > 0 || authLoading}
+                  className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-4 py-3 text-white text-xs mb-3 transition-colors text-center tracking-[0.1em]" />
+                <input type="password" value={adminPassword} onChange={e => { setAdminPassword(e.target.value); setPasswordError(''); }}
                   onKeyDown={e => e.key === 'Enter' && handleAdminLogin()}
                   placeholder={t.passwordPlaceholder}
+                  disabled={cooldownLeft > 0 || authLoading}
                   className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-4 py-3 text-white text-xs mb-4 transition-colors text-center tracking-[0.2em]" />
-                {passwordError && <p className="text-red-400 text-[10px] mb-4">{t.wrongPassword}</p>}
+                {passwordError && <p className="text-red-400 text-[10px] mb-4">{passwordError}</p>}
+                {cooldownLeft > 0 && (
+                  <p className="text-amber-400 text-[10px] mb-4 font-mono">
+                    ⛔ Кулдаун: {Math.floor(cooldownLeft / 60000)}:{String(Math.floor((cooldownLeft % 60000) / 1000)).padStart(2, '0')}
+                  </p>
+                )}
                 <button onClick={handleAdminLogin}
-                  className="w-full bg-cyber text-dark py-3 text-xs font-black tracking-[0.2em] clip-badge hover:bg-cyber/80 transition-colors">
-                  {t.login}
+                  disabled={cooldownLeft > 0 || authLoading}
+                  className={`w-full py-3 text-xs font-black tracking-[0.2em] clip-badge transition-colors
+                    ${cooldownLeft > 0 || authLoading ? 'bg-white/10 text-white/30 cursor-not-allowed' : 'bg-cyber text-dark hover:bg-cyber/80'}`}>
+                  {authLoading ? 'ВХОД...' : t.login}
                 </button>
               </div>
             ) : (

@@ -309,3 +309,31 @@ export async function dbUpdateSettings(s: SiteSettings) {
   }, { onConflict: 'id' });
   if (error) console.error('Settings update error:', error);
 }
+
+/* ═══ AUTH ═══ */
+
+export async function signInAdmin(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  return { session: data?.session, user: data?.user, error };
+}
+
+export async function signOutAdmin() {
+  const { error } = await supabase.auth.signOut();
+  if (error) console.error('Sign out error:', error);
+}
+
+export async function getSession() {
+  const { data } = await supabase.auth.getSession();
+  return data.session;
+}
+
+export async function changeAdminPassword(newPassword: string) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  return { error };
+}
+
+export function onAuthStateChange(callback: (session: any) => void) {
+  return supabase.auth.onAuthStateChange((_event, session) => {
+    callback(session);
+  });
+}
