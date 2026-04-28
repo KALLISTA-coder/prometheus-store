@@ -1,0 +1,405 @@
+@import "tailwindcss";
+
+@theme {
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-sans: 'Inter', sans-serif;
+  --color-volt: #ADFF2F;
+  --color-volt-dim: #7BBF1A;
+  --color-cyber: #FF6B2B;
+  --color-cyber-dim: #CC5522;
+  --color-panel: #F0F0F0;
+  --color-dark: #0A0A0A;
+  --color-dark-2: #111111;
+  --color-dark-3: #1A1A1A;
+  --color-dark-4: #222222;
+  --color-mid: #333333;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #333 #0A0A0A;
+}
+
+/* Hide native cursor on desktop only */
+@media (hover: hover) and (pointer: fine) {
+  * { cursor: none !important; }
+}
+
+body {
+  background: #0A0A0A;
+  font-family: 'JetBrains Mono', monospace;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══ ANIMATIONS ═══ */
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.97; }
+}
+
+@keyframes float-review {
+  0% { transform: translateX(100vw); opacity: 0; }
+  5% { opacity: 0.6; }
+  90% { opacity: 0.6; }
+  100% { transform: translateX(-120%); opacity: 0; }
+}
+
+@keyframes float-review-reverse {
+  0% { transform: translateX(-100%); opacity: 0; }
+  5% { opacity: 0.4; }
+  90% { opacity: 0.4; }
+  100% { transform: translateX(100vw); opacity: 0; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 5px currentColor; }
+  50% { box-shadow: 0 0 20px currentColor, 0 0 40px currentColor; }
+}
+
+@keyframes marquee-left {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes badge-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+@keyframes slide-up {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes glow-border {
+  0%, 100% { border-color: rgba(173, 255, 47, 0.2); }
+  50% { border-color: rgba(173, 255, 47, 0.6); }
+}
+
+@keyframes dash-march {
+  0% { stroke-dashoffset: 0; }
+  100% { stroke-dashoffset: -24; }
+}
+
+/* ─── Marble flow for cards ─── */
+@keyframes marble-flow {
+  0% { background-position: 50% 100%; }
+  100% { background-position: 50% -100%; }
+}
+
+/* ─── Harmonious floating ─── */
+@keyframes orb-float {
+  0%   { transform: translate(0, 0) scale(1); opacity: var(--orb-op, 0.06); }
+  25%  { transform: translate(var(--dx1, 40px), var(--dy1, -60px)) scale(1.15); opacity: calc(var(--orb-op, 0.06) * 1.5); }
+  50%  { transform: translate(var(--dx2, -20px), var(--dy2, -30px)) scale(0.9); opacity: var(--orb-op, 0.06); }
+  75%  { transform: translate(var(--dx3, 60px), var(--dy3, -80px)) scale(1.08); opacity: calc(var(--orb-op, 0.06) * 1.3); }
+  100% { transform: translate(0, 0) scale(1); opacity: var(--orb-op, 0.06); }
+}
+
+@keyframes line-sweep-h {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(100vw); opacity: 0; }
+}
+
+@keyframes line-sweep-v {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+@keyframes ring-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.04; }
+  50%      { transform: translate(-50%, -50%) scale(1.6); opacity: 0.1; }
+}
+
+@keyframes ring-expand {
+  0%   { transform: translate(-50%, -50%) scale(0); opacity: 0.15; }
+  100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+}
+
+@keyframes particle-rise {
+  0%   { transform: translateY(0) scale(0); opacity: 0; }
+  10%  { transform: translateY(0) scale(1); opacity: var(--p-op, 0.08); }
+  90%  { opacity: var(--p-op, 0.08); }
+  100% { transform: translateY(calc(-100vh - 50px)) scale(0.5); opacity: 0; }
+}
+
+@keyframes traverse {
+  0%   { transform: translateX(-120px); opacity: 0; }
+  5%   { opacity: var(--t-op, 0.08); }
+  95%  { opacity: var(--t-op, 0.08); }
+  100% { transform: translateX(calc(100vw + 120px)); opacity: 0; }
+}
+
+@keyframes traverse-rev {
+  0%   { transform: translateX(calc(100vw + 120px)); opacity: 0; }
+  5%   { opacity: var(--t-op, 0.08); }
+  95%  { opacity: var(--t-op, 0.08); }
+  100% { transform: translateX(-120px); opacity: 0; }
+}
+
+@keyframes radar-beam {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes sonar-ring {
+  0%   { transform: translate(-50%, -50%) scale(0.2); opacity: 0.3; border-width: 2px; }
+  100% { transform: translate(-50%, -50%) scale(3); opacity: 0; border-width: 0.5px; }
+}
+
+@keyframes matrix-fall {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  5%   { opacity: 0.08; }
+  95%  { opacity: 0.08; }
+  100% { transform: translateY(calc(100% + 100vh)); opacity: 0; }
+}
+
+@keyframes hex-spin {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes node-blink {
+  0%, 40%, 60%, 100% { opacity: 0.05; transform: scale(1); }
+  50% { opacity: 0.2; transform: scale(1.5); }
+}
+
+/* (removed unused comet animation) */
+
+@keyframes grid-pulse {
+  0%, 100% { opacity: 0.03; }
+  50%      { opacity: 0.07; }
+}
+
+@keyframes shimmer-card {
+  0%   { transform: translateX(-100%) skewX(-15deg); }
+  100% { transform: translateX(250%) skewX(-15deg); }
+}
+
+/* Promo-specific — all fly straight horizontally */
+@keyframes float-left {
+  0%   { transform: translateX(calc(100vw + 100%)); opacity: 0; }
+  3%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { transform: translateX(calc(-100% - 50px)); opacity: 0; }
+}
+
+@keyframes float-right {
+  0%   { transform: translateX(calc(-100% - 50px)); opacity: 0; }
+  3%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { transform: translateX(calc(100vw + 100%)); opacity: 0; }
+}
+
+@keyframes wobble-drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(15px, -10px) rotate(2deg); }
+  50%  { transform: translate(-10px, -25px) rotate(-1deg); }
+  75%  { transform: translate(20px, -15px) rotate(1.5deg); }
+}
+
+/* Geo drifting shapes */
+@keyframes geo-drift-1 {
+  0%, 100% { transform: translate(0,0) rotate(45deg); }
+  33% { transform: translate(-15px, 20px) rotate(47deg); }
+  66% { transform: translate(10px, -10px) rotate(43deg); }
+}
+@keyframes geo-drift-2 {
+  0%, 100% { transform: translate(0,0) rotate(45deg); }
+  33% { transform: translate(20px, -15px) rotate(43deg); }
+  66% { transform: translate(-10px, 10px) rotate(47deg); }
+}
+
+/* Geo traverse — straight line */
+@keyframes geo-traverse {
+  0%   { transform: translateX(-150px); opacity: 0; }
+  5%   { opacity: 0.08; }
+  95%  { opacity: 0.08; }
+  100% { transform: translateX(calc(100vw + 150px)); opacity: 0; }
+}
+@keyframes geo-traverse-rev {
+  0%   { transform: translateX(calc(100vw + 150px)); opacity: 0; }
+  5%   { opacity: 0.08; }
+  95%  { opacity: 0.08; }
+  100% { transform: translateX(-150px); opacity: 0; }
+}
+
+/* Orbit */
+@keyframes orbit-wide {
+  0% { transform: translate(-50%, -50%) rotate(0deg) translateX(150px) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg) translateX(150px) rotate(-360deg); }
+}
+@keyframes orbit-medium {
+  0% { transform: translate(-50%, -50%) rotate(0deg) translateX(100px) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg) translateX(100px) rotate(-360deg); }
+}
+
+/* Crosshair pulse */
+@keyframes crosshair-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* Logo glow pulsing */
+@keyframes logo-glow-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* Tunduk cursor spin */
+@keyframes tunduk-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Tunduk cursor styles */
+.tunduk-cursor {
+  position: fixed;
+  top: 0; left: 0;
+  pointer-events: none;
+  z-index: 99999;
+  mix-blend-mode: screen;
+  transition: opacity 0.15s ease;
+  will-change: transform;
+}
+.tunduk-cursor img {
+  display: block;
+  width: 48px;
+  height: 48px;
+}
+.tunduk-cursor.spinning img {
+  animation: tunduk-spin 2.5s linear infinite;
+}
+
+
+/* ═══ UTILITY CLASSES ═══ */
+
+.animate-scanline { animation: scanline 8s linear infinite; }
+.animate-flicker { animation: flicker 4s ease-in-out infinite; }
+.animate-slide-up { animation: slide-up 0.4s ease-out forwards; }
+.animate-fade-in { animation: fade-in 0.3s ease-out forwards; }
+.animate-badge-pulse { animation: badge-pulse 2s ease-in-out infinite; }
+
+.clip-badge {
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+.clip-badge-sm {
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.clip-notch-tr {
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+}
+.clip-notch-bl {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+.checkerboard {
+  background-image: repeating-conic-gradient(#333 0% 25%, transparent 0% 50%);
+  background-size: 8px 8px;
+}
+
+.diagonal-lines {
+  background-image: repeating-linear-gradient(
+    45deg, transparent, transparent 2px,
+    rgba(173, 255, 47, 0.06) 2px, rgba(173, 255, 47, 0.06) 4px
+  );
+}
+
+.grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(173, 255, 47, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(173, 255, 47, 0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.grid-bg-dense {
+  background-image:
+    linear-gradient(to right, rgba(173, 255, 47, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(173, 255, 47, 0.08) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Dot matrix pattern */
+.dot-matrix-bg {
+  background-image: radial-gradient(circle, rgba(173,255,47,0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.crosshatch {
+  background-image:
+    repeating-linear-gradient(45deg, transparent, transparent 4px, rgba(255,255,255,0.02) 4px, rgba(255,255,255,0.02) 5px),
+    repeating-linear-gradient(-45deg, transparent, transparent 4px, rgba(255,255,255,0.02) 4px, rgba(255,255,255,0.02) 5px);
+}
+
+input:focus, textarea:focus, select:focus { outline: none; }
+
+button, a { transition: all 0.2s ease-out; }
+button:active { transform: scale(0.97); }
+
+/* Card hover lift */
+.card-hover {
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, border-color 0.25s ease-out;
+}
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+}
+
+/* Card shimmer on hover */
+.card-hover:hover .card-shimmer-line {
+  animation: shimmer-card 1.2s ease-out forwards;
+}
+
+/* Marble texture for card info area */
+.marble-flow {
+  position: relative;
+  overflow: hidden;
+}
+.marble-flow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 80% at 20% 50%, var(--marble-color, rgba(173,255,47,0.04)) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 120% at 80% 30%, var(--marble-color, rgba(173,255,47,0.04)) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 60% at 50% 80%, var(--marble-color, rgba(173,255,47,0.03)) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 100% at 30% 20%, rgba(255,255,255,0.015) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 90% at 70% 70%, rgba(255,255,255,0.01) 0%, transparent 45%);
+  background-size: 200% 300%;
+  animation: marble-flow 20s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+.marble-flow > * { position: relative; z-index: 1; }
+
+/* Notification dot animation */
+.notif-dot { position: relative; }
+.notif-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 8px; height: 8px;
+  background: #FF3B30;
+  border-radius: 50%;
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+/* Color input styling */
+input[type="color"] { -webkit-appearance: none; border: none; padding: 0; }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: 1px solid rgba(255,255,255,0.2); }
