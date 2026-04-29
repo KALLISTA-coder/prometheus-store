@@ -22,7 +22,8 @@ import {
   dbUpsertPromotion, dbDeletePromotion,
   dbInsertOrder, dbUpdateOrder, dbDeleteOrder,
   dbUpdateSettings,
-  signInAdmin, signOutAdmin, getSession, changeAdminPassword, onAuthStateChange
+  signInAdmin, signOutAdmin, getSession, changeAdminPassword, onAuthStateChange,
+  uploadProductImage, deleteProductImage
 } from './supabase';
 
 const fmt = (n: number) => n.toLocaleString('ru-RU') + ' KGS';
@@ -2431,6 +2432,8 @@ const ProductEditForm: React.FC<{
   const [newTagRu, setNewTagRu] = useState('');
   const [newTagEn, setNewTagEn] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const updateSpec = (idx: number, field: 'label' | 'value', val: string, isEn: boolean) => {
     if (isEn) { const specs = [...p.specsEn]; specs[idx] = { ...specs[idx], [field]: val }; setP({ ...p, specsEn: specs }); }
@@ -2488,16 +2491,53 @@ const ProductEditForm: React.FC<{
       {/* Photos */}
       <div className="mb-4">
         <label className={labelCls}>{t.productPhotos}</label>
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-2 mb-3">
           {p.photos.map((photo, i) => (
-            <div key={i} className="relative w-20 h-16 border border-white/10 overflow-hidden group">
+            <div key={i} className="relative w-24 h-20 border border-white/10 overflow-hidden group">
               <img src={photo} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => removePhoto(i)} className="absolute top-0 right-0 bg-red-500/80 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3 text-white" /></button>
+              <button onClick={async () => {
+                if (photo.includes('supabase.co')) await deleteProductImage(photo);
+                removePhoto(i);
+              }} className="absolute top-0 right-0 bg-red-500/80 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <X className="w-3 h-3 text-white" />
+              </button>
             </div>
           ))}
         </div>
+
+        {/* Upload from device */}
+        <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden"
+          onChange={async (e) => {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+            setUploading(true);
+            const newPhotos = [...p.photos];
+            for (let i = 0; i < files.length; i++) {
+              const url = await uploadProductImage(files[i], p.id);
+              if (url) newPhotos.push(url);
+            }
+            setP({ ...p, photos: newPhotos });
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = '';
+          }}
+        />
+        <div className="flex gap-2 mb-2">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className={`flex-1 border border-dashed border-white/20 hover:border-volt/40 py-3 flex items-center justify-center gap-2 transition-all
+              ${uploading ? 'opacity-50 cursor-wait' : 'hover:bg-volt/5'}`}
+          >
+            <Image className="w-4 h-4 text-volt" />
+            <span className="text-[10px] font-bold tracking-wider text-white/40">
+              {uploading ? 'ЗАГРУЗКА...' : 'ЗАГРУЗИТЬ ФОТО'}
+            </span>
+          </button>
+        </div>
+
+        {/* Or add URL manually */}
         <div className="flex gap-2">
-          <input value={newPhotoUrl} onChange={e => setNewPhotoUrl(e.target.value)} className={inputCls} placeholder="https://..." />
+          <input value={newPhotoUrl} onChange={e => setNewPhotoUrl(e.target.value)} className={inputCls} placeholder="или URL: https://..." />
           <button onClick={addPhoto} className="px-3 bg-white/5 text-white/40 hover:text-volt hover:bg-white/10 transition-all shrink-0"><Plus className="w-4 h-4" /></button>
         </div>
       </div>

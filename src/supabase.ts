@@ -337,3 +337,35 @@ export function onAuthStateChange(callback: (session: any) => void) {
     callback(session);
   });
 }
+
+/* ═══ STORAGE (Product Images) ═══ */
+
+const BUCKET = 'product-images';
+
+export async function uploadProductImage(file: File, productId: string): Promise<string | null> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+  const fileName = `${productId}/${Date.now()}.${ext}`;
+
+  const { error } = await supabase.storage.from(BUCKET).upload(fileName, file, {
+    cacheControl: '3600',
+    upsert: false,
+  });
+
+  if (error) {
+    console.error('Upload error:', error);
+    return null;
+  }
+
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(fileName);
+  return data.publicUrl;
+}
+
+export async function deleteProductImage(url: string) {
+  // Extract path from full URL
+  const match = url.match(/product-images\/(.+)$/);
+  if (!match) return;
+  const path = match[1];
+
+  const { error } = await supabase.storage.from(BUCKET).remove([path]);
+  if (error) console.error('Delete image error:', error);
+}
