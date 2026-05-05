@@ -228,6 +228,9 @@ export async function fetchAllData() {
         telegramUsername: r.telegram_username || '',
         instagramUrl: r.instagram_url || '',
         phoneNumber: r.phone_number || '',
+        aboutExtraText: r.about_extra_text || '',
+        aboutExtraTextEn: r.about_extra_text_en || '',
+        socialLinks: r.social_links || [],
       }
     : { ...initialSettings };
 
@@ -350,6 +353,9 @@ export async function dbUpdateSettings(s: SiteSettings) {
     telegram_username: s.telegramUsername,
     instagram_url: s.instagramUrl,
     phone_number: s.phoneNumber,
+    about_extra_text: s.aboutExtraText,
+    about_extra_text_en: s.aboutExtraTextEn,
+    social_links: s.socialLinks,
   }, { onConflict: 'id' });
   if (error) console.error('Settings update error:', error);
 }

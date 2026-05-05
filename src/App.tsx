@@ -1215,6 +1215,50 @@ const App: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Extra info block */}
+            {(lang === 'ru' ? siteSettings.aboutExtraText : siteSettings.aboutExtraTextEn) && (
+              <div className="mt-8 bg-dark-2/85 backdrop-blur-sm border border-volt/10 p-6 relative">
+                <Crosshairs color="border-volt/20" />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="checkerboard w-4 h-4 opacity-30" />
+                  <h3 className="text-sm font-black tracking-[0.2em] text-volt">
+                    {lang === 'ru' ? 'ДОПОЛНИТЕЛЬНО' : 'ADDITIONAL INFO'}
+                  </h3>
+                </div>
+                <p className="text-xs text-white/50 leading-relaxed whitespace-pre-line">
+                  {lang === 'ru' ? siteSettings.aboutExtraText : siteSettings.aboutExtraTextEn}
+                </p>
+              </div>
+            )}
+
+            {/* Social links */}
+            {siteSettings.socialLinks.length > 0 && (
+              <div className="mt-8 bg-dark-3/90 backdrop-blur-sm border border-white/10 p-6 relative">
+                <Crosshairs color="border-cyber/20" />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="checkerboard w-4 h-4 opacity-30" />
+                  <h3 className="text-sm font-black tracking-[0.2em] text-cyber">
+                    {lang === 'ru' ? 'НАШИ РЕСУРСЫ' : 'OUR RESOURCES'}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  {siteSettings.socialLinks.filter(l => l.name && l.url).map((link, i) => (
+                    <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 bg-dark-2 border border-white/5 hover:border-cyber/30 p-3 transition-all group card-hover">
+                      {link.iconUrl ? (
+                        <img src={link.iconUrl} alt="" className="w-8 h-8 object-contain shrink-0" />
+                      ) : (
+                        <div className="w-8 h-8 bg-cyber/10 flex items-center justify-center shrink-0">
+                          <ExternalLink className="w-4 h-4 text-cyber/50" />
+                        </div>
+                      )}
+                      <span className="text-xs font-bold text-white/70 group-hover:text-cyber transition-colors truncate">{link.name}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </section>
         )}
 
@@ -1898,9 +1942,87 @@ const App: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* Extra info text block */}
+                      <div className="border border-white/5 p-4 bg-dark-3/50 mb-4">
+                        <div className="text-[10px] font-bold text-white/50 tracking-wider mb-3">
+                          {lang === 'ru' ? '📌 ДОПОЛНИТЕЛЬНАЯ ИНФОРМАЦИЯ' : '📌 EXTRA INFORMATION'}
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[9px] text-white/30 tracking-wider block mb-1">RU</label>
+                            <textarea value={siteSettings.aboutExtraText} onChange={e => setSiteSettings({ ...siteSettings, aboutExtraText: e.target.value })}
+                              rows={4} placeholder={lang === 'ru' ? 'Любой текст, который появится на странице О нас...' : 'Any text to show on About page...'}
+                              className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white resize-none transition-colors" />
+                          </div>
+                          <div>
+                            <label className="text-[9px] text-white/30 tracking-wider block mb-1">EN</label>
+                            <textarea value={siteSettings.aboutExtraTextEn} onChange={e => setSiteSettings({ ...siteSettings, aboutExtraTextEn: e.target.value })}
+                              rows={4} placeholder={lang === 'ru' ? 'English version...' : 'English version...'}
+                              className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white resize-none transition-colors" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Dynamic social links */}
+                      <div className="border border-white/5 p-4 bg-dark-3/50 mb-4">
+                        <div className="text-[10px] font-bold text-white/50 tracking-wider mb-3">
+                          {lang === 'ru' ? '🔗 ССЫЛКИ И РЕСУРСЫ' : '🔗 LINKS & RESOURCES'}
+                        </div>
+                        <div className="space-y-3">
+                          {siteSettings.socialLinks.map((link, i) => (
+                            <div key={i} className="flex items-center gap-3 bg-dark-2 border border-white/5 p-3">
+                              {/* Icon preview / upload */}
+                              <label className="w-10 h-10 border border-white/10 bg-dark-3 flex items-center justify-center cursor-pointer hover:border-cyber/30 transition-all shrink-0 overflow-hidden">
+                                {link.iconUrl ? (
+                                  <img src={link.iconUrl} alt="" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Plus className="w-4 h-4 text-white/20" />
+                                )}
+                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const url = await uploadProductImage(file, `social-icons/${Date.now()}`);
+                                  if (url) {
+                                    const updated = [...siteSettings.socialLinks];
+                                    updated[i] = { ...updated[i], iconUrl: url };
+                                    setSiteSettings({ ...siteSettings, socialLinks: updated });
+                                  }
+                                }} />
+                              </label>
+                              <div className="flex-1 grid grid-cols-2 gap-2">
+                                <input value={link.name} onChange={e => {
+                                  const updated = [...siteSettings.socialLinks];
+                                  updated[i] = { ...updated[i], name: e.target.value };
+                                  setSiteSettings({ ...siteSettings, socialLinks: updated });
+                                }} placeholder={lang === 'ru' ? 'Название (Discord, TikTok...)' : 'Name (Discord, TikTok...)'}
+                                  className="bg-dark-3 border border-white/10 focus:border-cyber px-2 py-1.5 text-xs text-white transition-colors" />
+                                <input value={link.url} onChange={e => {
+                                  const updated = [...siteSettings.socialLinks];
+                                  updated[i] = { ...updated[i], url: e.target.value };
+                                  setSiteSettings({ ...siteSettings, socialLinks: updated });
+                                }} placeholder="https://..."
+                                  className="bg-dark-3 border border-white/10 focus:border-cyber px-2 py-1.5 text-xs text-white transition-colors" />
+                              </div>
+                              <button onClick={() => {
+                                const updated = siteSettings.socialLinks.filter((_, idx) => idx !== i);
+                                setSiteSettings({ ...siteSettings, socialLinks: updated });
+                              }} className="p-1.5 bg-white/5 hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all shrink-0">
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <button onClick={() => {
+                          setSiteSettings({ ...siteSettings, socialLinks: [...siteSettings.socialLinks, { name: '', url: '', iconUrl: '' }] });
+                        }} className="mt-3 w-full border border-dashed border-white/10 hover:border-cyber/30 p-3 flex items-center justify-center gap-2 text-white/30 hover:text-cyber transition-all">
+                          <Plus className="w-4 h-4" /><span className="text-[10px] font-bold tracking-wider">{lang === 'ru' ? 'ДОБАВИТЬ ССЫЛКУ' : 'ADD LINK'}</span>
+                        </button>
+                      </div>
+
                       <button onClick={() => dbUpdateSettings(siteSettings)}
                         className="bg-cyber text-dark px-6 py-2 text-[10px] font-black tracking-[0.2em] clip-badge-sm hover:bg-cyber/80 transition-colors">
                         {lang === 'ru' ? '💾 СОХРАНИТЬ ВСЁ' : '💾 SAVE ALL'}
+                      </button>
                       </button>
                     </div>
 

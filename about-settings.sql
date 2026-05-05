@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════
--- Добавить поля "О нас" + контакты в site_settings
+-- Добавить поля "О нас" + контакты + доп. текст + ссылки
 -- Вставь в Supabase → SQL Editor → Run
 -- ═══════════════════════════════════════════════════
 
@@ -23,4 +23,7 @@ ALTER TABLE site_settings
   ADD COLUMN IF NOT EXISTS whatsapp_number TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS telegram_username TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS instagram_url TEXT NOT NULL DEFAULT '',
-  ADD COLUMN IF NOT EXISTS phone_number TEXT NOT NULL DEFAULT '';
+  ADD COLUMN IF NOT EXISTS phone_number TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS about_extra_text TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS about_extra_text_en TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS social_links JSONB NOT NULL DEFAULT '[]'::jsonb;

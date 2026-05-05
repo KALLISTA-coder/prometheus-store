@@ -97,6 +97,11 @@ export interface SiteSettings {
   telegramUsername: string;
   instagramUrl: string;
   phoneNumber: string;
+  // Extra info block
+  aboutExtraText: string;
+  aboutExtraTextEn: string;
+  // Dynamic social links
+  socialLinks: { name: string; url: string; iconUrl: string }[];
 }
 
 export const initialSettings: SiteSettings = {
@@ -121,6 +126,9 @@ export const initialSettings: SiteSettings = {
   telegramUsername: '',
   instagramUrl: '',
   phoneNumber: '',
+  aboutExtraText: '',
+  aboutExtraTextEn: '',
+  socialLinks: [],
 };
 
 export const initialCategories: Category[] = [
