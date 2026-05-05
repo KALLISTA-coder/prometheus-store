@@ -1233,7 +1233,7 @@ const App: React.FC = () => {
             )}
 
             {/* Social links */}
-            {siteSettings.socialLinks.length > 0 && (
+            {siteSettings.socialLinks.length > 0 && siteSettings.socialLinks.some(l => l.name && l.url) && (
               <div className="mt-8 bg-dark-3/90 backdrop-blur-sm border border-white/10 p-6 relative">
                 <Crosshairs color="border-cyber/20" />
                 <div className="flex items-center gap-3 mb-4">
@@ -1242,18 +1242,21 @@ const App: React.FC = () => {
                     {lang === 'ru' ? 'НАШИ РЕСУРСЫ' : 'OUR RESOURCES'}
                   </h3>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {siteSettings.socialLinks.filter(l => l.name && l.url).map((link, i) => (
                     <a key={i} href={link.url} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-3 bg-dark-2 border border-white/5 hover:border-cyber/30 p-3 transition-all group card-hover">
+                      className="flex items-center gap-4 bg-dark-2 border border-white/5 hover:border-cyber/30 p-4 transition-all group card-hover">
                       {link.iconUrl ? (
-                        <img src={link.iconUrl} alt="" className="w-8 h-8 object-contain shrink-0" />
+                        <img src={link.iconUrl} alt="" className="w-10 h-10 object-contain shrink-0" />
                       ) : (
-                        <div className="w-8 h-8 bg-cyber/10 flex items-center justify-center shrink-0">
-                          <ExternalLink className="w-4 h-4 text-cyber/50" />
+                        <div className="w-10 h-10 bg-cyber/10 flex items-center justify-center shrink-0">
+                          <ExternalLink className="w-5 h-5 text-cyber/50" />
                         </div>
                       )}
-                      <span className="text-xs font-bold text-white/70 group-hover:text-cyber transition-colors truncate">{link.name}</span>
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold text-white group-hover:text-cyber transition-colors">{link.name}</div>
+                        <div className="text-[10px] text-white/30 truncate">{link.url.replace(/^https?:\/\//, '')}</div>
+                      </div>
                     </a>
                   ))}
                 </div>
