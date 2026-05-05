@@ -2140,6 +2140,7 @@ const ProductDetailPage: React.FC<{
   onInquiry: (type: 'whatsapp' | 'telegram') => void;
 }> = ({ product, lang, t, onBack, onInquiry, categories }) => {
   const [activePhoto, setActivePhoto] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const savings = product.marketAverage - product.price;
   const savingsPercent = Math.round((savings / product.marketAverage) * 100);
   const catColor = categories.find(c => c.id === product.category)?.color || '#ADFF2F';
@@ -2170,16 +2171,21 @@ const ProductDetailPage: React.FC<{
         <div>
           {product.photos.length > 0 ? (
             <>
-              <div className="relative bg-dark-2 border border-white/5 overflow-hidden mb-3" style={{ height: '350px' }}>
+              <div className="relative bg-dark-2 border border-white/5 overflow-hidden mb-3 cursor-zoom-in" style={{ height: '350px' }}
+                onClick={() => setLightboxOpen(true)}>
                 <Crosshairs color="border-volt/20" />
                 <img src={product.photos[activePhoto]} alt={product.name}
-                  className="w-full h-full object-cover" />
+                  className="w-full h-full object-contain object-center" />
                 <div className="absolute top-3 left-3">
                   <DataTag variant={product.status === 'in-stock' ? 'volt' : 'cyber'}>
                     {product.status === 'in-stock' ? t.inStock : `${t.preOrder} • 20-30D`}
                   </DataTag>
                 </div>
                 <div className="absolute bottom-3 right-3 text-[8px] text-white/30 bg-dark/70 px-2 py-1">{product.serial}</div>
+                {/* Zoom hint */}
+                <div className="absolute top-3 right-3 bg-dark/60 backdrop-blur-sm border border-white/10 p-1.5 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                  <Eye className="w-4 h-4 text-white/50" />
+                </div>
               </div>
               {product.photos.length > 1 && (
                 <div className="flex gap-2 overflow-x-auto pb-2">
@@ -2190,6 +2196,47 @@ const ProductDetailPage: React.FC<{
                       <img src={photo} alt="" className="w-full h-full object-cover" />
                     </button>
                   ))}
+                </div>
+              )}
+
+              {/* ═══ LIGHTBOX MODAL ═══ */}
+              {lightboxOpen && (
+                <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center animate-fade-in"
+                  onClick={() => setLightboxOpen(false)}>
+                  {/* Close button */}
+                  <button className="absolute top-4 right-4 z-10 p-2 text-white/60 hover:text-white transition-colors bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm"
+                    onClick={(e) => { e.stopPropagation(); setLightboxOpen(false); }}>
+                    <X className="w-6 h-6" />
+                  </button>
+                  {/* Photo counter */}
+                  {product.photos.length > 1 && (
+                    <div className="absolute top-4 left-4 text-[11px] text-white/40 font-mono tracking-wider">
+                      {activePhoto + 1} / {product.photos.length}
+                    </div>
+                  )}
+                  {/* Main image */}
+                  <img
+                    src={product.photos[activePhoto]}
+                    alt={product.name}
+                    className="max-w-[90vw] max-h-[85vh] object-contain select-none"
+                    onClick={(e) => e.stopPropagation()}
+                    draggable={false}
+                  />
+                  {/* Prev / Next arrows */}
+                  {product.photos.length > 1 && (
+                    <>
+                      <button
+                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/40 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all"
+                        onClick={(e) => { e.stopPropagation(); setActivePhoto((activePhoto - 1 + product.photos.length) % product.photos.length); }}>
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                      <button
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/40 hover:text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-sm transition-all"
+                        onClick={(e) => { e.stopPropagation(); setActivePhoto((activePhoto + 1) % product.photos.length); }}>
+                        <ChevronRight className="w-6 h-6" />
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
             </>
