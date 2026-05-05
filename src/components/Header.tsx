@@ -2,39 +2,36 @@ import React from 'react';
 import { Menu, X, MapPin, Settings } from 'lucide-react';
 import { translations, type Lang, type T } from '../i18n';
 
-/* ─── Prometheus Logo SVG ─── */
-export const PrometheusLogo: React.FC<{ size?: number }> = ({ size = 32 }) => (
-  <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
-    <div className="absolute" style={{
-      width: size * 0.6, height: size * 0.6,
-      top: '30%', left: '20%',
-      background: 'radial-gradient(circle, rgba(255,160,0,0.7) 0%, rgba(255,100,0,0.3) 40%, transparent 70%)',
-      filter: `blur(${Math.max(size * 0.15, 4)}px)`,
-      borderRadius: '50%',
-      animation: 'logo-glow-pulse 3s ease-in-out infinite',
-    }} />
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ position: 'relative', zIndex: 1 }}>
-      <polygon points="8,25 92,25 50,92" fill="url(#lo-out)" opacity="0.9" />
-      <polygon points="22,32 78,32 50,78" fill="#0A0A0A" />
-      <polygon points="32,36 68,36 50,68" fill="url(#lo-ctr)" />
-      <defs>
-        <linearGradient id="lo-out" x1="0" y1="100" x2="100" y2="0">
-          <stop offset="0%" stopColor="#C0C0C0" /><stop offset="50%" stopColor="#999" /><stop offset="100%" stopColor="#707070" />
-        </linearGradient>
-        <linearGradient id="lo-ctr" x1="50" y1="36" x2="50" y2="68">
-          <stop offset="0%" stopColor="#FFD000" /><stop offset="40%" stopColor="#FF9500" /><stop offset="100%" stopColor="#FF5500" />
-        </linearGradient>
-      </defs>
-    </svg>
-    <div className="absolute" style={{
-      width: size * 0.35, height: size * 0.25,
-      top: '38%', left: '33%',
-      background: 'radial-gradient(ellipse, rgba(255,200,50,0.5) 0%, rgba(255,150,0,0.2) 50%, transparent 80%)',
-      filter: `blur(${Math.max(size * 0.08, 2)}px)`,
-      borderRadius: '50%',
-      pointerEvents: 'none',
-      zIndex: 2,
-    }} />
+/* ─── Prometheus Logo Image ─── */
+export const PrometheusLogo: React.FC<{ size?: number }> = ({ size = 36 }) => (
+  <div
+    className="relative inline-flex items-center justify-center"
+    style={{ width: size, height: size }}
+  >
+    {/* Внешнее оранжевое свечение — пульсирует */}
+    <div
+      className="absolute inset-0 rounded-full"
+      style={{
+        background: 'radial-gradient(circle, rgba(255,150,0,0.55) 0%, rgba(255,80,0,0.2) 45%, transparent 75%)',
+        filter: `blur(${Math.max(size * 0.22, 6)}px)`,
+        animation: 'logo-glow-pulse 3s ease-in-out infinite',
+      }}
+    />
+    {/* Сам логотип */}
+    <img
+      src="/logo.png"
+      alt="Prometheus"
+      style={{
+        width: size,
+        height: size,
+        objectFit: 'contain',
+        position: 'relative',
+        zIndex: 1,
+        filter: 'drop-shadow(0 0 6px rgba(255,160,0,0.6))',
+        animation: 'logo-inner-glow 3s ease-in-out infinite',
+      }}
+      draggable={false}
+    />
   </div>
 );
 
