@@ -1010,11 +1010,11 @@ const App: React.FC = () => {
                   style={{ animationDelay: `${i * 0.1}s` }}>
                   <Crosshairs color="border-white/10 group-hover:border-cyber/40" />
                   {promo.coverUrl ? (
-                    <div className="h-40 overflow-hidden">
-                      <img src={promo.coverUrl} alt="" className="w-full h-full object-cover opacity-70 group-hover:opacity-90 transition-opacity" />
+                    <div className="aspect-square bg-dark-3 overflow-hidden">
+                      <img src={promo.coverUrl} alt="" className="w-full h-full object-contain object-center opacity-80 group-hover:opacity-100 transition-opacity" />
                     </div>
                   ) : (
-                    <div className="h-40 bg-gradient-to-br from-cyber/10 to-volt/5 flex items-center justify-center">
+                    <div className="aspect-square bg-gradient-to-br from-cyber/10 to-volt/5 flex items-center justify-center">
                       <Gift className="w-12 h-12 text-cyber/30" />
                     </div>
                   )}
@@ -1059,8 +1059,8 @@ const App: React.FC = () => {
               <ChevronLeft className="w-4 h-4" /> {t.back}
             </button>
             {selectedPromo.coverUrl && (
-              <div className="h-64 mb-6 overflow-hidden border border-white/5">
-                <img src={selectedPromo.coverUrl} alt="" className="w-full h-full object-cover opacity-80" />
+              <div className="aspect-square max-h-[500px] mb-6 overflow-hidden border border-white/5 bg-dark-3">
+                <img src={selectedPromo.coverUrl} alt="" className="w-full h-full object-contain object-center opacity-90" />
               </div>
             )}
             <div className="flex items-center gap-3 mb-4">
