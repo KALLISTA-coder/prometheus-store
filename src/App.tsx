@@ -1216,6 +1216,61 @@ const App: React.FC = () => {
               </div>
             </div>
 
+            {/* Contacts block */}
+            {(siteSettings.whatsappNumber || siteSettings.telegramUsername || siteSettings.instagramUrl || siteSettings.phoneNumber) && (
+              <div className="mt-8 bg-dark-2/85 backdrop-blur-sm border border-cyber/10 p-6 relative">
+                <Crosshairs color="border-cyber/20" />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="checkerboard w-4 h-4 opacity-30" />
+                  <h3 className="text-sm font-black tracking-[0.2em] text-cyber">
+                    {lang === 'ru' ? 'КОНТАКТЫ' : 'CONTACTS'}
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {siteSettings.whatsappNumber && (
+                    <a href={`https://wa.me/${siteSettings.whatsappNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 bg-dark-3 border border-white/5 hover:border-green-500/30 p-4 transition-all group">
+                      <MessageCircle className="w-5 h-5 text-green-400 shrink-0" />
+                      <div>
+                        <div className="text-[9px] text-white/30 tracking-wider">WHATSAPP</div>
+                        <div className="text-xs font-bold text-white group-hover:text-green-400 transition-colors">{siteSettings.whatsappNumber}</div>
+                      </div>
+                    </a>
+                  )}
+                  {siteSettings.telegramUsername && (
+                    <a href={`https://t.me/${siteSettings.telegramUsername.replace('@', '')}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 bg-dark-3 border border-white/5 hover:border-blue-400/30 p-4 transition-all group">
+                      <MessageCircle className="w-5 h-5 text-blue-400 shrink-0" />
+                      <div>
+                        <div className="text-[9px] text-white/30 tracking-wider">TELEGRAM</div>
+                        <div className="text-xs font-bold text-white group-hover:text-blue-400 transition-colors">{siteSettings.telegramUsername}</div>
+                      </div>
+                    </a>
+                  )}
+                  {siteSettings.instagramUrl && (
+                    <a href={siteSettings.instagramUrl.startsWith('http') ? siteSettings.instagramUrl : `https://instagram.com/${siteSettings.instagramUrl}`} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-3 bg-dark-3 border border-white/5 hover:border-pink-400/30 p-4 transition-all group">
+                      <Image className="w-5 h-5 text-pink-400 shrink-0" />
+                      <div>
+                        <div className="text-[9px] text-white/30 tracking-wider">INSTAGRAM</div>
+                        <div className="text-xs font-bold text-white group-hover:text-pink-400 transition-colors">{siteSettings.instagramUrl.replace(/^https?:\/\/(www\.)?instagram\.com\//, '@')}</div>
+                      </div>
+                    </a>
+                  )}
+                  {siteSettings.phoneNumber && (
+                    <a href={`tel:${siteSettings.phoneNumber}`}
+                      className="flex items-center gap-3 bg-dark-3 border border-white/5 hover:border-volt/30 p-4 transition-all group">
+                      <Phone className="w-5 h-5 text-volt shrink-0" />
+                      <div>
+                        <div className="text-[9px] text-white/30 tracking-wider">{lang === 'ru' ? 'ТЕЛЕФОН' : 'PHONE'}</div>
+                        <div className="text-xs font-bold text-white group-hover:text-volt transition-colors">{siteSettings.phoneNumber}</div>
+                      </div>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Extra info block */}
             {(lang === 'ru' ? siteSettings.aboutExtraText : siteSettings.aboutExtraTextEn) && (
               <div className="mt-8 bg-dark-2/85 backdrop-blur-sm border border-volt/10 p-6 relative">
