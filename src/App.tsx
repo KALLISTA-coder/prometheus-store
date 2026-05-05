@@ -2023,7 +2023,6 @@ const App: React.FC = () => {
                         className="bg-cyber text-dark px-6 py-2 text-[10px] font-black tracking-[0.2em] clip-badge-sm hover:bg-cyber/80 transition-colors">
                         {lang === 'ru' ? '💾 СОХРАНИТЬ ВСЁ' : '💾 SAVE ALL'}
                       </button>
-                      </button>
                     </div>
 
                     {/* Password change */}
