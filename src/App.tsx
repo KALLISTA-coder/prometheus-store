@@ -1995,12 +1995,11 @@ const ProductCard: React.FC<{
 
       {/* Photo */}
       {product.photos[0] ? (
-        <div className="relative bg-dark-3" style={{ height: '192px' }}>
+        <div className="relative aspect-square bg-dark-3 overflow-hidden">
           <img
             src={product.photos[0]}
             alt={product.name}
-            className="absolute inset-0 w-full h-full object-contain opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
-            style={{ padding: '8px' }}
+            className="w-full h-full object-contain object-center opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
           />
           <div className="absolute top-2 right-2 z-10">
             <DataTag variant={product.status === 'in-stock' ? 'volt' : 'cyber'}>
@@ -2019,7 +2018,7 @@ const ProductCard: React.FC<{
           )}
         </div>
       ) : (
-        <div className="bg-dark-3 flex items-center justify-center" style={{ height: '192px' }}>
+        <div className="aspect-square bg-dark-3 flex items-center justify-center">
           <Package className="w-10 h-10 text-white/10" />
         </div>
       )}
@@ -2028,10 +2027,20 @@ const ProductCard: React.FC<{
         <h3 className="text-sm font-black text-white tracking-wide mb-1 group-hover:text-volt transition-colors">
           {lang === 'ru' ? product.name : product.nameEn}
         </h3>
-        <div className="flex items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 mb-2">
           <DataTag style={{ borderColor: `${catColor}50`, color: catColor, background: `${catColor}15` }}>{product.category.toUpperCase()}</DataTag>
         </div>
 
+        {/* Tags on mini-card */}
+        {(lang === 'ru' ? product.tags : product.tagsEn).length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-3">
+            {(lang === 'ru' ? product.tags : product.tagsEn).slice(0, 3).map((tag, idx) => (
+              <span key={idx} className="inline-block px-2 py-0.5 text-[9px] font-bold tracking-wider bg-white/5 text-white/50 border border-white/10 rounded-sm">
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
         {/* Price comparison - intuitive bar */}
         <div className="flex items-end gap-3 mb-2">
           <div>
