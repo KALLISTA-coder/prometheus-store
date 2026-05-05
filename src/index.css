@@ -20,10 +20,7 @@
   scrollbar-color: #333 #0A0A0A;
 }
 
-/* Hide native cursor on desktop only */
-@media (hover: hover) and (pointer: fine) {
-  * { cursor: none !important; }
-}
+
 
 body {
   background: #0A0A0A;
@@ -259,50 +256,6 @@ body {
 @keyframes logo-glow-pulse {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
-}
-
-/* Tunduk cursor — sun rays spin */
-@keyframes tunduk-rays-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-/* Tunduk cursor styles */
-.tunduk-cursor {
-  position: fixed;
-  top: 0; left: 0;
-  pointer-events: none;
-  z-index: 99999;
-  mix-blend-mode: screen;
-  opacity: 0.4;
-  transition: opacity 0.15s ease;
-  will-change: transform;
-}
-/* Rays — no animation by default */
-.tunduk-cursor .tunduk-rays {
-  transform-origin: 24px 24px;
-  transition: none;
-}
-/* Rays spin ONLY when hovering interactive elements */
-.tunduk-cursor.spinning .tunduk-rays {
-  animation: tunduk-rays-spin 3s linear infinite;
-}
-/* Center stays static always */
-.tunduk-cursor .tunduk-center {
-  transform-origin: 24px 24px;
-}
-/* Click = fully opaque */
-.tunduk-cursor.clicked {
-  opacity: 1 !important;
-}
-/* Scale bump on click */
-.tunduk-cursor.clicked svg {
-  transform: scale(1.15);
-  transition: transform 0.1s ease-out;
-}
-.tunduk-cursor:not(.clicked) svg {
-  transform: scale(1);
-  transition: transform 0.2s ease-out;
 }
 
 
