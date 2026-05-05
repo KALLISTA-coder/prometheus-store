@@ -1102,18 +1102,27 @@ const App: React.FC = () => {
                 const prod = products.find(p => p.id === pr.productId);
                 if (!prod) return null;
                 return (
-                  <div key={pr.productId} className="bg-dark-2 border border-white/5 p-4 flex items-center justify-between hover:border-volt/20 transition-all card-hover">
-                    <div className="flex items-center gap-4">
-                      {prod.photos[0] && <img src={prod.photos[0]} alt="" className="w-16 h-12 object-cover border border-white/10" />}
-                      <div>
-                        <div className="text-xs font-bold text-white">{lang === 'ru' ? prod.name : prod.nameEn}</div>
-                        <div className="text-[10px] text-white/30">{fmt(prod.price)}</div>
+                  <div key={pr.productId} className="bg-dark-2 border border-white/5 p-4 hover:border-volt/20 transition-all card-hover">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {prod.photos[0] && <img src={prod.photos[0]} alt="" className="w-16 h-12 object-cover border border-white/10" />}
+                        <div>
+                          <div className="text-xs font-bold text-white">{lang === 'ru' ? prod.name : prod.nameEn}</div>
+                          <div className="text-[10px] text-white/30">{fmt(prod.price)}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[9px] text-white/30 tracking-wider">{t.rewardPerSale}</div>
+                        <div className="text-lg font-black text-cyber">
+                          {pr.rewardType === 'percent' ? `${pr.reward}%` : fmt(pr.reward)}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-[9px] text-white/30 tracking-wider">{t.rewardPerSale}</div>
-                      <div className="text-lg font-black text-cyber">{fmt(pr.reward)}</div>
-                    </div>
+                    {pr.note && (
+                      <div className="mt-2 text-[10px] text-white/40 border-t border-white/5 pt-2 italic">
+                        💬 {pr.note}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -2715,7 +2724,8 @@ const PromoEditForm: React.FC<{
   promo: Promotion; t: T; products: Product[]; lang: Lang; isNew?: boolean;
   onSave: (p: Promotion) => void; onCancel: () => void;
 }> = ({ promo: initial, t, products, lang, onSave, onCancel }) => {
-  const [p, setP] = useState<Promotion>({ ...initial, productRewards: [...initial.productRewards] });
+  const [p, setP] = useState<Promotion>({ ...initial, productRewards: initial.productRewards.map(pr => ({ ...pr, rewardType: pr.rewardType || 'fixed', note: pr.note || '' })) });
+  const [coverUploading, setCoverUploading] = useState(false);
   const inputCls = "w-full bg-dark-3 border border-white/10 focus:border-volt px-3 py-2 text-xs text-white transition-colors";
   const labelCls = "text-[10px] text-white/30 tracking-wider block mb-1";
 
@@ -2724,12 +2734,19 @@ const PromoEditForm: React.FC<{
     if (exists) {
       setP({ ...p, productRewards: p.productRewards.filter(pr => pr.productId !== productId) });
     } else {
-      setP({ ...p, productRewards: [...p.productRewards, { productId, reward: 0 }] });
+      setP({ ...p, productRewards: [...p.productRewards, { productId, reward: 0, rewardType: 'fixed', note: '' }] });
     }
   };
 
-  const setReward = (productId: string, reward: number) => {
-    setP({ ...p, productRewards: p.productRewards.map(pr => pr.productId === productId ? { ...pr, reward } : pr) });
+  const updateReward = (productId: string, field: string, value: any) => {
+    setP({ ...p, productRewards: p.productRewards.map(pr => pr.productId === productId ? { ...pr, [field]: value } : pr) });
+  };
+
+  const handleCoverUpload = async (file: File) => {
+    setCoverUploading(true);
+    const url = await uploadProductImage(file, `promo-covers/${p.id}`);
+    if (url) setP({ ...p, coverUrl: url });
+    setCoverUploading(false);
   };
 
   return (
@@ -2748,7 +2765,26 @@ const PromoEditForm: React.FC<{
         <div><label className={labelCls}>{t.promoDesc}</label><textarea value={p.description} onChange={e => setP({ ...p, description: e.target.value })} rows={3} className={`${inputCls} resize-none`} /></div>
         <div><label className={labelCls}>{t.promoDescEn}</label><textarea value={p.descriptionEn} onChange={e => setP({ ...p, descriptionEn: e.target.value })} rows={3} className={`${inputCls} resize-none`} /></div>
       </div>
-      <div className="mb-4"><label className={labelCls}>{t.promoCover}</label><input value={p.coverUrl} onChange={e => setP({ ...p, coverUrl: e.target.value })} className={inputCls} placeholder="https://..." /></div>
+
+      {/* Cover image — upload or URL */}
+      <div className="mb-4">
+        <label className={labelCls}>{t.promoCover}</label>
+        <div className="flex gap-3 items-start">
+          <div className="flex-1">
+            <input value={p.coverUrl} onChange={e => setP({ ...p, coverUrl: e.target.value })} className={inputCls} placeholder="https://... или загрузите файл →" />
+          </div>
+          <label className={`shrink-0 px-4 py-2 text-[10px] font-bold tracking-wider cursor-pointer transition-all border clip-badge-sm ${coverUploading ? 'bg-white/5 text-white/20 border-white/10' : 'bg-cyber/10 text-cyber border-cyber/30 hover:bg-cyber/20'}`}>
+            {coverUploading ? '...' : '📁 ЗАГРУЗИТЬ'}
+            <input type="file" accept="image/*" className="hidden" disabled={coverUploading}
+              onChange={e => { if (e.target.files?.[0]) handleCoverUpload(e.target.files[0]); }} />
+          </label>
+        </div>
+        {p.coverUrl && (
+          <div className="mt-2 h-24 border border-white/10 overflow-hidden bg-dark-2">
+            <img src={p.coverUrl} alt="" className="w-full h-full object-cover opacity-70" />
+          </div>
+        )}
+      </div>
 
       {/* Promo stats */}
       <div className="grid grid-cols-2 gap-4 mb-4">
@@ -2763,22 +2799,46 @@ const PromoEditForm: React.FC<{
         <div className="space-y-2">
           {products.map(prod => {
             const isSelected = p.productRewards.some(pr => pr.productId === prod.id);
-            const reward = p.productRewards.find(pr => pr.productId === prod.id)?.reward || 0;
+            const pr = p.productRewards.find(r => r.productId === prod.id);
             return (
-              <div key={prod.id} className={`flex items-center gap-3 p-3 border transition-all ${isSelected ? 'bg-cyber/5 border-cyber/20' : 'bg-dark-2 border-white/5'}`}>
-                <button onClick={() => toggleProduct(prod.id)}
-                  className={`w-5 h-5 border flex items-center justify-center shrink-0 ${isSelected ? 'bg-cyber border-cyber' : 'border-white/20'}`}>
-                  {isSelected && <CheckCircle className="w-3 h-3 text-dark" />}
-                </button>
-                <div className="flex-1">
-                  <div className="text-xs font-bold text-white">{lang === 'ru' ? prod.name : prod.nameEn}</div>
-                  <div className="text-[10px] text-white/30">{fmt(prod.price)}</div>
+              <div key={prod.id} className={`p-3 border transition-all ${isSelected ? 'bg-cyber/5 border-cyber/20' : 'bg-dark-2 border-white/5'}`}>
+                <div className="flex items-center gap-3">
+                  <button onClick={() => toggleProduct(prod.id)}
+                    className={`w-5 h-5 border flex items-center justify-center shrink-0 ${isSelected ? 'bg-cyber border-cyber' : 'border-white/20'}`}>
+                    {isSelected && <CheckCircle className="w-3 h-3 text-dark" />}
+                  </button>
+                  <div className="flex-1">
+                    <div className="text-xs font-bold text-white">{lang === 'ru' ? prod.name : prod.nameEn}</div>
+                    <div className="text-[10px] text-white/30">{fmt(prod.price)}</div>
+                  </div>
+                  {isSelected && pr && (
+                    <div className="flex items-center gap-2">
+                      {/* Reward type toggle */}
+                      <div className="flex border border-white/10 overflow-hidden">
+                        <button onClick={() => updateReward(prod.id, 'rewardType', 'fixed')}
+                          className={`px-2 py-1 text-[9px] font-bold ${pr.rewardType === 'fixed' || !pr.rewardType ? 'bg-cyber text-dark' : 'bg-dark-3 text-white/40 hover:text-white/70'}`}>
+                          KGS
+                        </button>
+                        <button onClick={() => updateReward(prod.id, 'rewardType', 'percent')}
+                          className={`px-2 py-1 text-[9px] font-bold ${pr.rewardType === 'percent' ? 'bg-cyber text-dark' : 'bg-dark-3 text-white/40 hover:text-white/70'}`}>
+                          %
+                        </button>
+                      </div>
+                      <input type="number" value={pr.reward} onChange={e => updateReward(prod.id, 'reward', Number(e.target.value))}
+                        className="w-20 bg-dark-3 border border-white/10 px-2 py-1 text-xs text-white text-right" />
+                      <span className="text-[9px] text-white/30">{pr.rewardType === 'percent' ? '%' : 'KGS'}</span>
+                    </div>
+                  )}
                 </div>
-                {isSelected && (
-                  <div className="flex items-center gap-2">
-                    <label className="text-[9px] text-white/30">{t.rewardAmount}</label>
-                    <input type="number" value={reward} onChange={e => setReward(prod.id, Number(e.target.value))}
-                      className="w-24 bg-dark-3 border border-white/10 px-2 py-1 text-xs text-white text-right" />
+                {/* Note field */}
+                {isSelected && pr && (
+                  <div className="mt-2 ml-8">
+                    <input
+                      value={pr.note || ''}
+                      onChange={e => updateReward(prod.id, 'note', e.target.value)}
+                      placeholder={lang === 'ru' ? 'Примечание к товару...' : 'Product note...'}
+                      className="w-full bg-dark-2 border border-white/5 focus:border-cyber/30 px-2 py-1 text-[10px] text-white/60 transition-colors"
+                    />
                   </div>
                 )}
               </div>

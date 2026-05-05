@@ -57,7 +57,7 @@ export interface Promotion {
   description: string;
   descriptionEn: string;
   coverUrl: string;
-  productRewards: { productId: string; reward: number }[];
+  productRewards: { productId: string; reward: number; rewardType?: 'fixed' | 'percent'; note?: string }[];
   usersCount: number;
   totalSaved: number;
 }
