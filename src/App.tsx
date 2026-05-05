@@ -2240,7 +2240,7 @@ const ProductDetailPage: React.FC<{
         <div>
           {product.photos.length > 0 ? (
             <>
-              <div className="relative bg-dark-2 border border-white/5 overflow-hidden mb-3 cursor-zoom-in" style={{ height: '350px' }}
+              <div className="relative aspect-square bg-dark-3 border border-white/5 overflow-hidden mb-3 cursor-zoom-in"
                 onClick={() => setLightboxOpen(true)}>
                 <Crosshairs color="border-volt/20" />
                 <img src={product.photos[activePhoto]} alt={product.name}
@@ -2262,7 +2262,7 @@ const ProductDetailPage: React.FC<{
                     <button key={i} onClick={() => setActivePhoto(i)}
                       className={`w-20 h-16 border shrink-0 overflow-hidden transition-all hover:scale-105
                         ${i === activePhoto ? 'border-volt' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
-                      <img src={photo} alt="" className="w-full h-full object-cover" />
+                      <img src={photo} alt="" className="w-full h-full object-contain object-center bg-dark-3" />
                     </button>
                   ))}
                 </div>
@@ -2310,7 +2310,7 @@ const ProductDetailPage: React.FC<{
               )}
             </>
           ) : (
-            <div className="bg-dark-2 border border-white/5 h-[350px] flex items-center justify-center">
+            <div className="aspect-square bg-dark-3 border border-white/5 flex items-center justify-center">
               <Package className="w-16 h-16 text-white/10" />
             </div>
           )}
