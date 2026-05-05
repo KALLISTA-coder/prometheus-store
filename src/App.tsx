@@ -1995,26 +1995,31 @@ const ProductCard: React.FC<{
 
       {/* Photo */}
       {product.photos[0] ? (
-        <div className="h-44 overflow-hidden relative">
-          <img src={product.photos[0]} alt={product.name} className="w-full h-full object-cover opacity-70 group-hover:opacity-90 group-hover:scale-105 transition-all duration-500" />
-          <div className="absolute top-2 right-2">
+        <div className="relative bg-dark-3" style={{ height: '192px' }}>
+          <img
+            src={product.photos[0]}
+            alt={product.name}
+            className="absolute inset-0 w-full h-full object-contain opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
+            style={{ padding: '8px' }}
+          />
+          <div className="absolute top-2 right-2 z-10">
             <DataTag variant={product.status === 'in-stock' ? 'volt' : 'cyber'}>
               {product.status === 'in-stock' ? t.inStock : t.preOrder}
             </DataTag>
           </div>
-          <div className="absolute bottom-2 left-2 flex items-center gap-1">
+          <div className="absolute bottom-2 left-2 flex items-center gap-1 z-10">
             <div className="checkerboard w-3 h-3 opacity-40" />
             <span className="text-[8px] text-white/40 bg-dark/60 px-1.5 py-0.5">{product.serial}</span>
           </div>
           {product.photos.length > 1 && (
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-dark/60 px-1.5 py-0.5">
+            <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-dark/60 px-1.5 py-0.5 z-10">
               <Image className="w-3 h-3 text-white/40" />
               <span className="text-[8px] text-white/40">{product.photos.length}</span>
             </div>
           )}
         </div>
       ) : (
-        <div className="h-44 bg-dark-3 flex items-center justify-center">
+        <div className="bg-dark-3 flex items-center justify-center" style={{ height: '192px' }}>
           <Package className="w-10 h-10 text-white/10" />
         </div>
       )}
