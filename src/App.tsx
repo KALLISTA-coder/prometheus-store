@@ -1173,10 +1173,10 @@ const App: React.FC = () => {
 
             <div className="grid md:grid-cols-2 gap-4">
               {[
-                { icon: ShieldCheck, title: t.trustTitle, desc: t.trustDesc, accent: 'volt' as const },
-                { icon: Truck, title: t.deliveryTitle, desc: t.deliveryDesc, accent: 'cyber' as const },
-                { icon: Package, title: t.qualityTitle, desc: t.qualityDesc, accent: 'volt' as const },
-                { icon: Cpu, title: t.supportTitle, desc: t.supportDesc, accent: 'cyber' as const },
+                { icon: ShieldCheck, title: lang === 'ru' ? siteSettings.aboutTrustTitle : siteSettings.aboutTrustTitleEn, desc: lang === 'ru' ? siteSettings.aboutTrustDesc : siteSettings.aboutTrustDescEn, accent: 'volt' as const },
+                { icon: Truck, title: lang === 'ru' ? siteSettings.aboutDeliveryTitle : siteSettings.aboutDeliveryTitleEn, desc: lang === 'ru' ? siteSettings.aboutDeliveryDesc : siteSettings.aboutDeliveryDescEn, accent: 'cyber' as const },
+                { icon: Package, title: lang === 'ru' ? siteSettings.aboutQualityTitle : siteSettings.aboutQualityTitleEn, desc: lang === 'ru' ? siteSettings.aboutQualityDesc : siteSettings.aboutQualityDescEn, accent: 'volt' as const },
+                { icon: Cpu, title: lang === 'ru' ? siteSettings.aboutSupportTitle : siteSettings.aboutSupportTitleEn, desc: lang === 'ru' ? siteSettings.aboutSupportDesc : siteSettings.aboutSupportDescEn, accent: 'cyber' as const },
               ].map((item, i) => (
                 <div key={i} className="relative bg-dark-2/85 backdrop-blur-sm border border-white/5 p-6 group hover:border-volt/20 transition-all card-hover animate-slide-up" style={{ animationDelay: `${i * 0.1}s` }}>
                   <Crosshairs color="border-white/10" />
@@ -1819,6 +1819,88 @@ const App: React.FC = () => {
                       <button onClick={() => dbUpdateSettings(siteSettings)}
                         className="mt-4 bg-cyber text-dark px-6 py-2 text-[10px] font-black tracking-[0.2em] clip-badge-sm hover:bg-cyber/80 transition-colors">
                         {t.save}
+                      </button>
+                    </div>
+
+                    {/* ═══ About Us Editor ═══ */}
+                    <div className="bg-dark-2 border border-white/5 p-6">
+                      <Crosshairs color="border-cyber/20" />
+                      <h3 className="text-xs font-black tracking-[0.2em] text-cyber mb-4">
+                        {lang === 'ru' ? '📝 РЕДАКТОР «О НАС»' : '📝 ABOUT US EDITOR'}
+                      </h3>
+                      {[
+                        { key: 'Trust', label: lang === 'ru' ? '🛡️ Блок 1 — Поставщик' : '🛡️ Block 1 — Supplier' },
+                        { key: 'Delivery', label: lang === 'ru' ? '🚚 Блок 2 — Доставка' : '🚚 Block 2 — Delivery' },
+                        { key: 'Quality', label: lang === 'ru' ? '📦 Блок 3 — Качество' : '📦 Block 3 — Quality' },
+                        { key: 'Support', label: lang === 'ru' ? '🖥️ Блок 4 — Поддержка' : '🖥️ Block 4 — Support' },
+                      ].map(block => {
+                        const titleKey = `about${block.key}Title` as keyof SiteSettings;
+                        const titleEnKey = `about${block.key}TitleEn` as keyof SiteSettings;
+                        const descKey = `about${block.key}Desc` as keyof SiteSettings;
+                        const descEnKey = `about${block.key}DescEn` as keyof SiteSettings;
+                        return (
+                          <div key={block.key} className="mb-4 border border-white/5 p-4 bg-dark-3/50">
+                            <div className="text-[10px] font-bold text-white/50 tracking-wider mb-3">{block.label}</div>
+                            <div className="grid md:grid-cols-2 gap-3 mb-2">
+                              <div>
+                                <label className="text-[9px] text-white/30 tracking-wider block mb-1">{lang === 'ru' ? 'Заголовок RU' : 'Title RU'}</label>
+                                <input value={String(siteSettings[titleKey])} onChange={e => setSiteSettings({ ...siteSettings, [titleKey]: e.target.value })}
+                                  className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white transition-colors" />
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-white/30 tracking-wider block mb-1">{lang === 'ru' ? 'Заголовок EN' : 'Title EN'}</label>
+                                <input value={String(siteSettings[titleEnKey])} onChange={e => setSiteSettings({ ...siteSettings, [titleEnKey]: e.target.value })}
+                                  className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white transition-colors" />
+                              </div>
+                            </div>
+                            <div className="grid md:grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-[9px] text-white/30 tracking-wider block mb-1">{lang === 'ru' ? 'Описание RU' : 'Description RU'}</label>
+                                <textarea value={String(siteSettings[descKey])} onChange={e => setSiteSettings({ ...siteSettings, [descKey]: e.target.value })}
+                                  rows={2} className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white resize-none transition-colors" />
+                              </div>
+                              <div>
+                                <label className="text-[9px] text-white/30 tracking-wider block mb-1">{lang === 'ru' ? 'Описание EN' : 'Description EN'}</label>
+                                <textarea value={String(siteSettings[descEnKey])} onChange={e => setSiteSettings({ ...siteSettings, [descEnKey]: e.target.value })}
+                                  rows={2} className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white resize-none transition-colors" />
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* Social & Contacts */}
+                      <div className="border border-white/5 p-4 bg-dark-3/50 mb-4">
+                        <div className="text-[10px] font-bold text-white/50 tracking-wider mb-3">
+                          {lang === 'ru' ? '📱 СОЦСЕТИ И КОНТАКТЫ' : '📱 SOCIAL & CONTACTS'}
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-3">
+                          <div>
+                            <label className="text-[9px] text-white/30 tracking-wider block mb-1">WhatsApp</label>
+                            <input value={siteSettings.whatsappNumber} onChange={e => setSiteSettings({ ...siteSettings, whatsappNumber: e.target.value })}
+                              placeholder="+996XXXXXXXXX" className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white transition-colors" />
+                          </div>
+                          <div>
+                            <label className="text-[9px] text-white/30 tracking-wider block mb-1">Telegram</label>
+                            <input value={siteSettings.telegramUsername} onChange={e => setSiteSettings({ ...siteSettings, telegramUsername: e.target.value })}
+                              placeholder="@username" className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white transition-colors" />
+                          </div>
+                          <div>
+                            <label className="text-[9px] text-white/30 tracking-wider block mb-1">Instagram</label>
+                            <input value={siteSettings.instagramUrl} onChange={e => setSiteSettings({ ...siteSettings, instagramUrl: e.target.value })}
+                              placeholder="https://instagram.com/..." className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white transition-colors" />
+                          </div>
+                          <div>
+                            <label className="text-[9px] text-white/30 tracking-wider block mb-1">{lang === 'ru' ? 'Телефон' : 'Phone'}</label>
+                            <input value={siteSettings.phoneNumber} onChange={e => setSiteSettings({ ...siteSettings, phoneNumber: e.target.value })}
+                              placeholder="+996XXXXXXXXX" className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-3 py-2 text-xs text-white transition-colors" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <button onClick={() => dbUpdateSettings(siteSettings)}
+                        className="bg-cyber text-dark px-6 py-2 text-[10px] font-black tracking-[0.2em] clip-badge-sm hover:bg-cyber/80 transition-colors">
+                        {lang === 'ru' ? '💾 СОХРАНИТЬ ВСЁ' : '💾 SAVE ALL'}
                       </button>
                     </div>
 

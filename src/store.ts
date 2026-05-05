@@ -75,10 +75,52 @@ export interface Order {
 
 export interface SiteSettings {
   completedOrdersCount: number;
+  // About page content
+  aboutTrustTitle: string;
+  aboutTrustTitleEn: string;
+  aboutTrustDesc: string;
+  aboutTrustDescEn: string;
+  aboutDeliveryTitle: string;
+  aboutDeliveryTitleEn: string;
+  aboutDeliveryDesc: string;
+  aboutDeliveryDescEn: string;
+  aboutQualityTitle: string;
+  aboutQualityTitleEn: string;
+  aboutQualityDesc: string;
+  aboutQualityDescEn: string;
+  aboutSupportTitle: string;
+  aboutSupportTitleEn: string;
+  aboutSupportDesc: string;
+  aboutSupportDescEn: string;
+  // Social & contacts
+  whatsappNumber: string;
+  telegramUsername: string;
+  instagramUrl: string;
+  phoneNumber: string;
 }
 
 export const initialSettings: SiteSettings = {
   completedOrdersCount: 0,
+  aboutTrustTitle: 'НАДЕЖНЫЙ ПОСТАВЩИК',
+  aboutTrustTitleEn: 'TRUSTED SUPPLIER',
+  aboutTrustDesc: 'Прометей — ваш надежный поставщик продукции без наценок в Кыргызстане. Работаем напрямую с производителями.',
+  aboutTrustDescEn: 'Prometheus is your trusted supplier of products without markup in Kyrgyzstan. Direct partnerships with manufacturers.',
+  aboutDeliveryTitle: 'БЫСТРАЯ ДОСТАВКА',
+  aboutDeliveryTitleEn: 'FAST DELIVERY',
+  aboutDeliveryDesc: 'Бесплатная доставка по Кара-Балте. Оперативная доставка в Бишкек. Товары в наличии — 24 часа.',
+  aboutDeliveryDescEn: 'Free delivery in Kara-Balta. Express delivery to Bishkek. In-stock items within 24 hours.',
+  aboutQualityTitle: 'ГАРАНТИЯ КАЧЕСТВА',
+  aboutQualityTitleEn: 'QUALITY GUARANTEE',
+  aboutQualityDesc: 'Каждый товар проходит проверку. Официальная гарантия от 3 месяцев до 2 лет.',
+  aboutQualityDescEn: 'Every product is inspected. Official warranty from 3 months to 2 years.',
+  aboutSupportTitle: 'ПОДДЕРЖКА 24/7',
+  aboutSupportTitleEn: '24/7 SUPPORT',
+  aboutSupportDesc: 'Консультация, помощь в выборе и послепродажное обслуживание в любое время.',
+  aboutSupportDescEn: 'Consultation, selection assistance, and after-sales service at any time.',
+  whatsappNumber: '',
+  telegramUsername: '',
+  instagramUrl: '',
+  phoneNumber: '',
 };
 
 export const initialCategories: Category[] = [

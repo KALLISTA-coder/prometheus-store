@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Product, Review, Category, StoreAddress, Promotion, Order, SiteSettings } from './store';
+import { initialSettings } from './store';
 
 const SUPABASE_URL = 'https://lrhdvpjddtaujcoriqgw.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxyaGR2cGpkZHRhdWpjb3JpcWd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNDQ5ODAsImV4cCI6MjA5MTgyMDk4MH0.ZRCTsSkXypPZCFJjOMRAjCyX8eOCJWrncgDqwM7WXfc';
@@ -203,9 +204,32 @@ export async function fetchAllData() {
     supabase.from('site_settings').select('*'),
   ]);
 
-  const settings: SiteSettings = settingsRows?.[0]
-    ? { completedOrdersCount: settingsRows[0].completed_orders_count || 0 }
-    : { completedOrdersCount: 0 };
+  const r = settingsRows?.[0];
+  const settings: SiteSettings = r
+    ? {
+        completedOrdersCount: r.completed_orders_count || 0,
+        aboutTrustTitle: r.about_trust_title || initialSettings.aboutTrustTitle,
+        aboutTrustTitleEn: r.about_trust_title_en || initialSettings.aboutTrustTitleEn,
+        aboutTrustDesc: r.about_trust_desc || initialSettings.aboutTrustDesc,
+        aboutTrustDescEn: r.about_trust_desc_en || initialSettings.aboutTrustDescEn,
+        aboutDeliveryTitle: r.about_delivery_title || initialSettings.aboutDeliveryTitle,
+        aboutDeliveryTitleEn: r.about_delivery_title_en || initialSettings.aboutDeliveryTitleEn,
+        aboutDeliveryDesc: r.about_delivery_desc || initialSettings.aboutDeliveryDesc,
+        aboutDeliveryDescEn: r.about_delivery_desc_en || initialSettings.aboutDeliveryDescEn,
+        aboutQualityTitle: r.about_quality_title || initialSettings.aboutQualityTitle,
+        aboutQualityTitleEn: r.about_quality_title_en || initialSettings.aboutQualityTitleEn,
+        aboutQualityDesc: r.about_quality_desc || initialSettings.aboutQualityDesc,
+        aboutQualityDescEn: r.about_quality_desc_en || initialSettings.aboutQualityDescEn,
+        aboutSupportTitle: r.about_support_title || initialSettings.aboutSupportTitle,
+        aboutSupportTitleEn: r.about_support_title_en || initialSettings.aboutSupportTitleEn,
+        aboutSupportDesc: r.about_support_desc || initialSettings.aboutSupportDesc,
+        aboutSupportDescEn: r.about_support_desc_en || initialSettings.aboutSupportDescEn,
+        whatsappNumber: r.whatsapp_number || '',
+        telegramUsername: r.telegram_username || '',
+        instagramUrl: r.instagram_url || '',
+        phoneNumber: r.phone_number || '',
+      }
+    : { ...initialSettings };
 
   return {
     products: (products || []).map(dbToProduct),
@@ -306,6 +330,26 @@ export async function dbUpdateSettings(s: SiteSettings) {
   const { error } = await supabase.from('site_settings').upsert({
     id: 'main',
     completed_orders_count: s.completedOrdersCount,
+    about_trust_title: s.aboutTrustTitle,
+    about_trust_title_en: s.aboutTrustTitleEn,
+    about_trust_desc: s.aboutTrustDesc,
+    about_trust_desc_en: s.aboutTrustDescEn,
+    about_delivery_title: s.aboutDeliveryTitle,
+    about_delivery_title_en: s.aboutDeliveryTitleEn,
+    about_delivery_desc: s.aboutDeliveryDesc,
+    about_delivery_desc_en: s.aboutDeliveryDescEn,
+    about_quality_title: s.aboutQualityTitle,
+    about_quality_title_en: s.aboutQualityTitleEn,
+    about_quality_desc: s.aboutQualityDesc,
+    about_quality_desc_en: s.aboutQualityDescEn,
+    about_support_title: s.aboutSupportTitle,
+    about_support_title_en: s.aboutSupportTitleEn,
+    about_support_desc: s.aboutSupportDesc,
+    about_support_desc_en: s.aboutSupportDescEn,
+    whatsapp_number: s.whatsappNumber,
+    telegram_username: s.telegramUsername,
+    instagram_url: s.instagramUrl,
+    phone_number: s.phoneNumber,
   }, { onConflict: 'id' });
   if (error) console.error('Settings update error:', error);
 }
