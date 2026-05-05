@@ -69,7 +69,7 @@ const DataTag: React.FC<{ children: React.ReactNode; variant?: 'volt' | 'cyber' 
 
 /* ─── PrometheusLogo imported from ./components/Header ─── */
 
-/* ─── Tunduk Cursor (Kyrgyzstan emblem — white, transparent) ─── */
+/* ─── Tunduk Cursor — SVG Kyrgyz Emblem with animated sun rays ─── */
 const TundukCursor: React.FC = () => {
   const elRef = React.useRef<HTMLDivElement>(null);
   const xRef = React.useRef(-100);
@@ -77,7 +77,6 @@ const TundukCursor: React.FC = () => {
   const rafRef = React.useRef(0);
 
   useEffect(() => {
-    // Only show custom cursor on desktop (pointer devices)
     const hasPointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     if (!hasPointer) return;
 
@@ -96,8 +95,8 @@ const TundukCursor: React.FC = () => {
       rafRef.current = requestAnimationFrame(move);
     };
 
-    const onDown = () => { el.style.opacity = '1'; };
-    const onUp = () => { el.style.opacity = '0.5'; };
+    const onDown = () => { el.classList.add('clicked'); };
+    const onUp = () => { el.classList.remove('clicked'); };
 
     const onOver = (e: MouseEvent) => {
       const t = e.target as HTMLElement;
@@ -127,9 +126,45 @@ const TundukCursor: React.FC = () => {
     };
   }, []);
 
+  // Generate 40 sun rays evenly spaced
+  const rayCount = 40;
+  const rays = Array.from({ length: rayCount }, (_, i) => {
+    const angle = (360 / rayCount) * i;
+    return (
+      <line key={i}
+        x1="24" y1="24"
+        x2={24 + 22 * Math.cos((angle * Math.PI) / 180)}
+        y2={24 + 22 * Math.sin((angle * Math.PI) / 180)}
+        stroke="rgba(255,215,0,0.6)"
+        strokeWidth={i % 2 === 0 ? "1.2" : "0.6"}
+        strokeLinecap="round"
+      />
+    );
+  });
+
   return (
-    <div ref={elRef} className="tunduk-cursor" style={{ display: 'none', opacity: 0.5 }}>
-      <img src="/cursor-tunduk.png" alt="" draggable={false} />
+    <div ref={elRef} className="tunduk-cursor" style={{ display: 'none' }}>
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        {/* Sun rays — rotating group */}
+        <g className="tunduk-rays">
+          {rays}
+        </g>
+        {/* Tunduk center — static */}
+        <g className="tunduk-center">
+          {/* Outer ring */}
+          <circle cx="24" cy="24" r="10" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" fill="none" />
+          {/* Inner ring */}
+          <circle cx="24" cy="24" r="7" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" fill="none" />
+          {/* Cross beams of tunduk */}
+          <line x1="17" y1="24" x2="31" y2="24" stroke="rgba(255,255,255,0.7)" strokeWidth="1" />
+          <line x1="24" y1="17" x2="24" y2="31" stroke="rgba(255,255,255,0.7)" strokeWidth="1" />
+          {/* Diagonal beams */}
+          <line x1="19.05" y1="19.05" x2="28.95" y2="28.95" stroke="rgba(255,255,255,0.5)" strokeWidth="0.7" />
+          <line x1="28.95" y1="19.05" x2="19.05" y2="28.95" stroke="rgba(255,255,255,0.5)" strokeWidth="0.7" />
+          {/* Center dot */}
+          <circle cx="24" cy="24" r="2" fill="rgba(255,215,0,0.9)" />
+        </g>
+      </svg>
     </div>
   );
 };
@@ -2433,6 +2468,7 @@ const ProductEditForm: React.FC<{
   const [newTagEn, setNewTagEn] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   const updateSpec = (idx: number, field: 'label' | 'value', val: string, isEn: boolean) => {
@@ -2511,14 +2547,28 @@ const ProductEditForm: React.FC<{
             const files = e.target.files;
             if (!files || files.length === 0) return;
             setUploading(true);
+            setUploadMsg('');
             const newPhotos = [...p.photos];
+            let errorCount = 0;
             for (let i = 0; i < files.length; i++) {
+              if (files[i].size > 5 * 1024 * 1024) {
+                setUploadMsg(`❗ ${files[i].name}: файл больше 5 МБ`);
+                errorCount++;
+                continue;
+              }
               const url = await uploadProductImage(files[i], p.id);
-              if (url) newPhotos.push(url);
+              if (url) {
+                newPhotos.push(url);
+              } else {
+                errorCount++;
+                setUploadMsg(`❗ Ошибка загрузки. Убедитесь что вы вошли в админку через email+пароль`);
+              }
             }
             setP({ ...p, photos: newPhotos });
             setUploading(false);
+            if (errorCount === 0) setUploadMsg(`✅ Загружено ${files.length} фото`);
             if (fileInputRef.current) fileInputRef.current.value = '';
+            setTimeout(() => setUploadMsg(''), 5000);
           }}
         />
         <div className="flex gap-2 mb-2">
@@ -2534,7 +2584,11 @@ const ProductEditForm: React.FC<{
             </span>
           </button>
         </div>
-
+        {uploadMsg && (
+          <p className={`text-[10px] mb-2 ${uploadMsg.startsWith('✅') ? 'text-volt' : 'text-red-400'}`}>
+            {uploadMsg}
+          </p>
+        )}
         {/* Or add URL manually */}
         <div className="flex gap-2">
           <input value={newPhotoUrl} onChange={e => setNewPhotoUrl(e.target.value)} className={inputCls} placeholder="или URL: https://..." />

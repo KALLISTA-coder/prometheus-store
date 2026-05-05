@@ -261,8 +261,8 @@ body {
   50% { opacity: 1; }
 }
 
-/* Tunduk cursor spin */
-@keyframes tunduk-spin {
+/* Tunduk cursor — sun rays spin */
+@keyframes tunduk-rays-spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
@@ -274,16 +274,35 @@ body {
   pointer-events: none;
   z-index: 99999;
   mix-blend-mode: screen;
+  opacity: 0.4;
   transition: opacity 0.15s ease;
   will-change: transform;
 }
-.tunduk-cursor img {
-  display: block;
-  width: 48px;
-  height: 48px;
+/* Rays — no animation by default */
+.tunduk-cursor .tunduk-rays {
+  transform-origin: 24px 24px;
+  transition: none;
 }
-.tunduk-cursor.spinning img {
-  animation: tunduk-spin 2.5s linear infinite;
+/* Rays spin ONLY when hovering interactive elements */
+.tunduk-cursor.spinning .tunduk-rays {
+  animation: tunduk-rays-spin 3s linear infinite;
+}
+/* Center stays static always */
+.tunduk-cursor .tunduk-center {
+  transform-origin: 24px 24px;
+}
+/* Click = fully opaque */
+.tunduk-cursor.clicked {
+  opacity: 1 !important;
+}
+/* Scale bump on click */
+.tunduk-cursor.clicked svg {
+  transform: scale(1.15);
+  transition: transform 0.1s ease-out;
+}
+.tunduk-cursor:not(.clicked) svg {
+  transform: scale(1);
+  transition: transform 0.2s ease-out;
 }
 
 
