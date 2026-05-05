@@ -69,17 +69,16 @@ const DataTag: React.FC<{ children: React.ReactNode; variant?: 'volt' | 'cyber' 
 
 /* ─── PrometheusLogo imported from ./components/Header ─── */
 
-/* ─── Tunduk Cursor — SVG Kyrgyz Emblem with animated sun rays ─── */
+/* ─── Tunduk Cursor — white spinning ring + static tunduk lattice ─── */
 const TundukCursor: React.FC = () => {
   const elRef = React.useRef<HTMLDivElement>(null);
-  const xRef = React.useRef(-100);
-  const yRef = React.useRef(-100);
+  const xRef  = React.useRef(-100);
+  const yRef  = React.useRef(-100);
   const rafRef = React.useRef(0);
 
   useEffect(() => {
     const hasPointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     if (!hasPointer) return;
-
     const el = elRef.current;
     if (!el) return;
     el.style.display = 'block';
@@ -87,82 +86,102 @@ const TundukCursor: React.FC = () => {
     const move = () => {
       el.style.transform = `translate(${xRef.current - 24}px, ${yRef.current - 24}px)`;
     };
-
     const onMouse = (e: MouseEvent) => {
-      xRef.current = e.clientX;
-      yRef.current = e.clientY;
+      xRef.current = e.clientX; yRef.current = e.clientY;
       cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(move);
     };
-
-    const onDown = () => { el.classList.add('clicked'); };
-    const onUp = () => { el.classList.remove('clicked'); };
-
+    const onDown = () => el.classList.add('clicked');
+    const onUp   = () => el.classList.remove('clicked');
     const onOver = (e: MouseEvent) => {
-      const t = e.target as HTMLElement;
-      const interactive = !!t.closest('button, a, [role="button"], input, select, textarea, .card-hover');
-      if (interactive) el.classList.add('spinning');
-      else el.classList.remove('spinning');
+      const interactive = !!(e.target as HTMLElement).closest(
+        'button, a, [role="button"], input, select, textarea, .card-hover'
+      );
+      el.classList.toggle('spinning', interactive);
     };
-
     const onLeave = () => { el.style.display = 'none'; };
     const onEnter = () => { el.style.display = 'block'; };
 
     window.addEventListener('mousemove', onMouse, { passive: true });
     window.addEventListener('mousedown', onDown);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener('mouseup',   onUp);
     window.addEventListener('mouseover', onOver, { passive: true });
     document.addEventListener('mouseleave', onLeave);
     document.addEventListener('mouseenter', onEnter);
-
     return () => {
       cancelAnimationFrame(rafRef.current);
       window.removeEventListener('mousemove', onMouse);
       window.removeEventListener('mousedown', onDown);
-      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('mouseup',   onUp);
       window.removeEventListener('mouseover', onOver);
       document.removeEventListener('mouseleave', onLeave);
       document.removeEventListener('mouseenter', onEnter);
     };
   }, []);
 
-  // Generate 40 sun rays evenly spaced
-  const rayCount = 40;
-  const rays = Array.from({ length: rayCount }, (_, i) => {
-    const angle = (360 / rayCount) * i;
-    return (
-      <line key={i}
-        x1="24" y1="24"
-        x2={24 + 22 * Math.cos((angle * Math.PI) / 180)}
-        y2={24 + 22 * Math.sin((angle * Math.PI) / 180)}
-        stroke="rgba(255,215,0,0.6)"
-        strokeWidth={i % 2 === 0 ? "1.2" : "0.6"}
-        strokeLinecap="round"
-      />
-    );
-  });
+  const C = 24;
+
+  // Tunduk lattice: 3 pairs of parallel chords at 0°, 60°, 120°
+  // Radius 9, offset 3.2 from center
+  const R = 9; const OFF = 3.2;
+  const HL = Math.sqrt(R * R - OFF * OFF);
+  const chordPair = (angleDeg: number) => {
+    const a = (angleDeg * Math.PI) / 180;
+    const cos = Math.cos(a); const sin = Math.sin(a);
+    const px = -sin * OFF; const py =  cos * OFF;
+    const dx =  cos * HL;  const dy =  sin * HL;
+    return [
+      [C + px - dx, C + py - dy, C + px + dx, C + py + dy],
+      [C - px - dx, C - py - dy, C - px + dx, C - py + dy],
+    ];
+  };
+  const chords = [0, 60, 120].flatMap(a => chordPair(a));
 
   return (
     <div ref={elRef} className="tunduk-cursor" style={{ display: 'none' }}>
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        {/* Sun rays — rotating group */}
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+
+        {/* ── SPINNING outer ring (6 arc segments with gaps) ── */}
         <g className="tunduk-rays">
-          {rays}
+          {/* Dashed circle trick: circumference of r=21 ≈ 131.9
+              6 equal arcs with gaps: each arc = ~16.5, gap = ~5.5 */}
+          <circle
+            cx={C} cy={C} r={21}
+            stroke="rgba(255,255,255,0.85)"
+            strokeWidth="2"
+            strokeDasharray="16.5 5.5"
+            strokeLinecap="round"
+            fill="none"
+          />
+          {/* 8 small outer tick marks for detail */}
+          {Array.from({ length: 8 }, (_, i) => {
+            const a = ((i * 45) * Math.PI) / 180;
+            return (
+              <line key={i}
+                x1={C + 19 * Math.cos(a)} y1={C + 19 * Math.sin(a)}
+                x2={C + 22.5 * Math.cos(a)} y2={C + 22.5 * Math.sin(a)}
+                stroke="rgba(255,255,255,0.6)" strokeWidth="1.5" strokeLinecap="round"
+              />
+            );
+          })}
         </g>
-        {/* Tunduk center — static */}
+
+        {/* ── STATIC tunduk center ── */}
         <g className="tunduk-center">
-          {/* Outer ring */}
-          <circle cx="24" cy="24" r="10" stroke="rgba(255,255,255,0.85)" strokeWidth="1.5" fill="none" />
-          {/* Inner ring */}
-          <circle cx="24" cy="24" r="7" stroke="rgba(255,255,255,0.6)" strokeWidth="0.8" fill="none" />
-          {/* Cross beams of tunduk */}
-          <line x1="17" y1="24" x2="31" y2="24" stroke="rgba(255,255,255,0.7)" strokeWidth="1" />
-          <line x1="24" y1="17" x2="24" y2="31" stroke="rgba(255,255,255,0.7)" strokeWidth="1" />
-          {/* Diagonal beams */}
-          <line x1="19.05" y1="19.05" x2="28.95" y2="28.95" stroke="rgba(255,255,255,0.5)" strokeWidth="0.7" />
-          <line x1="28.95" y1="19.05" x2="19.05" y2="28.95" stroke="rgba(255,255,255,0.5)" strokeWidth="0.7" />
+          {/* Tunduk outer circle */}
+          <circle cx={C} cy={C} r={R}
+            fill="rgba(255,255,255,0.08)"
+            stroke="rgba(255,255,255,0.9)" strokeWidth="1" />
+          {/* Lattice chords — canonical tunduk pattern */}
+          {chords.map(([x1, y1, x2, y2], i) => (
+            <line key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke="rgba(255,255,255,0.9)" strokeWidth="0.85" strokeLinecap="round" />
+          ))}
+          {/* Inner small ring */}
+          <circle cx={C} cy={C} r={3}
+            fill="none" stroke="rgba(255,255,255,0.6)" strokeWidth="0.7" />
           {/* Center dot */}
-          <circle cx="24" cy="24" r="2" fill="rgba(255,215,0,0.9)" />
+          <circle cx={C} cy={C} r={1.3} fill="white" />
         </g>
       </svg>
     </div>
