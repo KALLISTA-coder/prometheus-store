@@ -2948,6 +2948,32 @@ const ProductEditForm: React.FC<{
           <button onClick={addTag} className="px-3 bg-white/5 text-white/40 hover:text-volt hover:bg-white/10 transition-all shrink-0"><Plus className="w-4 h-4" /></button>
         </div>
       </div>
+      {/* Profit options (hidden from customers) */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <label className={labelCls}>💰 {initial.name ? 'ВАРИАНТЫ ПРИБЫЛИ' : 'PROFIT OPTIONS'} <span className="text-white/20">(скрыто от покупателей)</span></label>
+          <button onClick={() => setP({ ...p, profitOptions: [...p.profitOptions, { label: '', amount: 0 }] })}
+            className="text-[10px] text-cyber hover:text-white flex items-center gap-1"><Plus className="w-3 h-3" /> Добавить</button>
+        </div>
+        <div className="space-y-2">
+          {p.profitOptions.map((opt, i) => (
+            <div key={i} className="flex gap-2 items-center">
+              <input value={opt.label} onChange={e => {
+                const opts = [...p.profitOptions]; opts[i] = { ...opts[i], label: e.target.value }; setP({ ...p, profitOptions: opts });
+              }} className={inputCls} placeholder="Название (Стандарт, Опт...)" />
+              <input type="number" value={opt.amount} onChange={e => {
+                const opts = [...p.profitOptions]; opts[i] = { ...opts[i], amount: Number(e.target.value) }; setP({ ...p, profitOptions: opts });
+              }} className={`${inputCls} w-32`} placeholder="KGS" />
+              <span className="text-[9px] text-white/20 shrink-0">KGS</span>
+              <button onClick={() => setP({ ...p, profitOptions: p.profitOptions.filter((_, idx) => idx !== i) })}
+                className="p-1.5 text-red-400/50 hover:text-red-400 shrink-0"><XCircle className="w-4 h-4" /></button>
+            </div>
+          ))}
+          {p.profitOptions.length === 0 && (
+            <div className="text-[10px] text-white/20 py-2">Нет вариантов прибыли. Нажмите «Добавить».</div>
+          )}
+        </div>
+      </div>
 
       <div className="flex gap-3">
         <button onClick={() => onSave(p)} className="flex-1 bg-volt text-dark py-3 text-xs font-black tracking-[0.2em] clip-badge hover:bg-white transition-colors flex items-center justify-center gap-2"><Save className="w-4 h-4" /> {t.save}</button>
