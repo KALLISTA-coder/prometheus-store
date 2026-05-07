@@ -27,6 +27,8 @@ function dbToProduct(row: any): Product {
     photos: row.photos || [],
     description: row.description || '',
     descriptionEn: row.description_en || '',
+    sortOrder: row.sort_order ?? 0,
+    profitOptions: row.profit_options || [],
   };
 }
 
@@ -48,6 +50,8 @@ function productToDb(p: Product): any {
     photos: p.photos,
     description: p.description,
     description_en: p.descriptionEn,
+    sort_order: p.sortOrder,
+    profit_options: p.profitOptions,
   };
 }
 
@@ -195,7 +199,7 @@ export async function fetchAllData() {
     { data: orders },
     { data: settingsRows },
   ] = await Promise.all([
-    supabase.from('products').select('*'),
+    supabase.from('products').select('*').order('sort_order', { ascending: true }),
     supabase.from('reviews').select('*'),
     supabase.from('categories').select('*'),
     supabase.from('addresses').select('*'),
@@ -325,6 +329,14 @@ export async function dbUpdateOrder(o: Order) {
 export async function dbDeleteOrder(id: string) {
   const { error } = await supabase.from('orders').delete().eq('id', id);
   if (error) console.error('Order delete error:', error);
+}
+
+/* ═══ SORT ORDER ═══ */
+
+export async function dbUpdateSortOrder(items: { id: string; sortOrder: number }[]) {
+  for (const item of items) {
+    await supabase.from('products').update({ sort_order: item.sortOrder }).eq('id', item.id);
+  }
 }
 
 /* ═══ SETTINGS ═══ */

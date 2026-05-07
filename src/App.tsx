@@ -22,7 +22,7 @@ import {
   dbUpsertAddress, dbDeleteAddress,
   dbUpsertPromotion, dbDeletePromotion,
   dbInsertOrder, dbUpdateOrder, dbDeleteOrder,
-  dbUpdateSettings,
+  dbUpdateSettings, dbUpdateSortOrder,
   signInAdmin, signOutAdmin, getSession, changeAdminPassword, onAuthStateChange,
   uploadProductImage, deleteProductImage
 } from './supabase';
@@ -1689,6 +1689,8 @@ const App: React.FC = () => {
                             serial: `SN-NEW-${Date.now()}`,
                             photos: [],
                             description: '', descriptionEn: '',
+                            sortOrder: products.length,
+                            profitOptions: [],
                           })}
                           className="flex items-center gap-2 bg-volt text-dark px-6 py-3 text-[10px] font-black tracking-[0.2em] clip-badge hover:bg-white transition-colors">
                           <Plus className="w-4 h-4" /> {t.addProduct || 'ДОБАВИТЬ ТОВАР'}
@@ -1700,6 +1702,7 @@ const App: React.FC = () => {
                         <table className="w-full text-xs">
                           <thead>
                             <tr className="bg-white/5">
+                              <th className="text-left p-3 text-white/30 font-bold tracking-wider w-10">#</th>
                               <th className="text-left p-3 text-white/30 font-bold tracking-wider">S/N</th>
                               <th className="text-left p-3 text-white/30 font-bold tracking-wider">{lang === 'ru' ? 'НАЗВАНИЕ' : 'NAME'}</th>
                               <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.price}</th>
@@ -1708,8 +1711,30 @@ const App: React.FC = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {products.map(p => (
+                            {products.map((p, idx) => (
                               <tr key={p.id} className="border-t border-white/5 hover:bg-white/[0.02]">
+                                <td className="p-3 text-white/20">
+                                  <div className="flex flex-col gap-0.5">
+                                    <button disabled={idx === 0} onClick={() => {
+                                      const arr = [...products];
+                                      [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
+                                      const updated = arr.map((item, i) => ({ ...item, sortOrder: i }));
+                                      setProducts(updated);
+                                      dbUpdateSortOrder(updated.map((item, i) => ({ id: item.id, sortOrder: i })));
+                                    }} className={`p-0.5 ${idx === 0 ? 'text-white/5' : 'text-white/30 hover:text-volt'} transition-colors`}>
+                                      <ChevronLeft className="w-3 h-3 rotate-90" />
+                                    </button>
+                                    <button disabled={idx === products.length - 1} onClick={() => {
+                                      const arr = [...products];
+                                      [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
+                                      const updated = arr.map((item, i) => ({ ...item, sortOrder: i }));
+                                      setProducts(updated);
+                                      dbUpdateSortOrder(updated.map((item, i) => ({ id: item.id, sortOrder: i })));
+                                    }} className={`p-0.5 ${idx === products.length - 1 ? 'text-white/5' : 'text-white/30 hover:text-volt'} transition-colors`}>
+                                      <ChevronLeft className="w-3 h-3 -rotate-90" />
+                                    </button>
+                                  </div>
+                                </td>
                                 <td className="p-3 text-white/20">{p.serial}</td>
                                 <td className="p-3 text-white/80 font-bold">{lang === 'ru' ? p.name : p.nameEn}</td>
                                 <td className="p-3 text-volt font-bold">{fmt(p.price)}</td>

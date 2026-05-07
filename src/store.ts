@@ -15,6 +15,8 @@ export interface Product {
   photos: string[];
   description: string;
   descriptionEn: string;
+  sortOrder: number;
+  profitOptions: { label: string; amount: number }[];
 }
 
 export interface Review {
