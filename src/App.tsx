@@ -2780,7 +2780,7 @@ const ProductEditForm: React.FC<{
   product: Product; t: T; categories: Category[];
   onSave: (p: Product) => void; onCancel: () => void;
 }> = ({ product: initial, t, categories, onSave, onCancel }) => {
-  const [p, setP] = useState<Product>({ ...initial });
+  const [p, setP] = useState<Product>({ ...initial, profitOptions: initial.profitOptions || [], sortOrder: initial.sortOrder ?? 0 });
   const [newTagRu, setNewTagRu] = useState('');
   const [newTagEn, setNewTagEn] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
