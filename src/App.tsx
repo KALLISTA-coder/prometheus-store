@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Fuse from 'fuse.js';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import {
   Phone, MessageCircle, MapPin, Clock, Star,
   ShieldCheck, Package, Truck, BarChart3, Eye,
@@ -1184,7 +1185,7 @@ const App: React.FC = () => {
                   <div key={pr.productId} className="bg-dark-2 border border-white/5 p-4 hover:border-volt/20 transition-all card-hover">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-4">
-                        {prod.photos[0] && <img src={prod.photos[0]} alt="" className="w-16 h-12 object-cover border border-white/10" />}
+                        {prod.photos[0] && <img src={prod.photos[0]} alt={prod.name} className="w-16 h-12 object-cover border border-white/10" />}
                         <div>
                           <div className="text-xs font-bold text-white">{lang === 'ru' ? prod.name : prod.nameEn}</div>
                           <div className="text-[10px] text-white/30">{fmt(prod.price)}</div>
@@ -2264,7 +2265,7 @@ const App: React.FC = () => {
 
                 {/* Accounting tab */}
                 {adminTab === 'accounting' && (
-                  <AccountingDashboard orders={orders} t={t} lang={lang} />
+                  <AccountingDashboard orders={orders} products={products} t={t} lang={lang} />
                 )}
               </>
             )}
@@ -2618,6 +2619,40 @@ const ProductDetailPage: React.FC<{
   const savings = product.marketAverage - product.price;
   const savingsPercent = Math.round((savings / product.marketAverage) * 100);
   const catColor = categories.find(c => c.id === product.category)?.color || '#ADFF2F';
+  useEffect(() => {
+    const title = lang === 'ru' ? product.name : product.nameEn;
+    const desc = lang === 'ru' ? product.description : product.descriptionEn;
+    const imgUrl = product.photos[0] || '';
+    
+    document.title = `${title} - PROMETHEUS STORE`;
+    
+    const setMeta = (nameAttr: string, propAttr: string, content: string) => {
+      let tag = document.querySelector(`meta[name="${nameAttr}"]`) || document.querySelector(`meta[property="${propAttr}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        if (nameAttr) tag.setAttribute('name', nameAttr);
+        if (propAttr) tag.setAttribute('property', propAttr);
+        document.head.appendChild(tag);
+      }
+      tag.setAttribute('content', content);
+      return tag;
+    };
+
+    const tags = [
+      setMeta('description', '', desc.substring(0, 160)),
+      setMeta('', 'og:title', title),
+      setMeta('', 'og:description', desc.substring(0, 160)),
+      setMeta('', 'og:image', imgUrl),
+      setMeta('', 'og:type', 'product'),
+      setMeta('', 'product:price:amount', String(product.price)),
+      setMeta('', 'product:price:currency', 'KGS'),
+    ];
+
+    return () => {
+      document.title = 'PROMETHEUS STORE | Электроника без наценок';
+      tags.forEach(t => t?.remove());
+    };
+  }, [product, lang]);
 
   return (
     <section className="relative max-w-7xl mx-auto px-4 py-12 animate-fade-in" style={{ background: `linear-gradient(180deg, ${catColor}08 0%, transparent 400px)` }}>
@@ -2667,7 +2702,7 @@ const ProductDetailPage: React.FC<{
                     <button key={i} onClick={() => setActivePhoto(i)}
                       className={`w-20 h-16 border shrink-0 overflow-hidden transition-all hover:scale-105
                         ${i === activePhoto ? 'border-volt' : 'border-white/10 opacity-50 hover:opacity-80'}`}>
-                      <img src={photo} alt="" className="w-full h-full object-contain object-center bg-dark-3" />
+                      <img src={photo} alt={`${product.name} - Фото ${i + 1}`} className="w-full h-full object-contain object-center bg-dark-3" />
                     </button>
                   ))}
                 </div>
@@ -2894,7 +2929,7 @@ const ProductDetailPage: React.FC<{
 /* ═══════════════════════════════════════════════════════
    ACCOUNTING DASHBOARD (Admin)
    ═══════════════════════════════════════════════════════ */
-const AccountingDashboard: React.FC<{ orders: Order[], t: T, lang: string }> = ({ orders, t, lang }) => {
+const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T, lang: string }> = ({ orders, products, t, lang }) => {
   const completed = orders.filter(o => o.status === 'completed' && o.profitAmount !== undefined);
   
   let totalReal = 0;
@@ -2905,6 +2940,9 @@ const AccountingDashboard: React.FC<{ orders: Order[], t: T, lang: string }> = (
   let currentMonthReal = 0;
 
   const monthlyStats: Record<string, { real: number, credit: number, debt: number }> = {};
+  
+  const productProfitMap = new Map<string, number>();
+  const productStats = new Map<string, { count: number; totalProfit: number; conditions: { cash: number, credit: number, debt: number, return: number, other: number } }>();
 
   completed.forEach(o => {
     const monthKey = o.date ? o.date.substring(0, 7) : 'Unknown';
@@ -2924,7 +2962,37 @@ const AccountingDashboard: React.FC<{ orders: Order[], t: T, lang: string }> = (
         currentMonthReal += amt;
       }
     }
+
+    if (!productProfitMap.has(o.productId)) productProfitMap.set(o.productId, 0);
+    productProfitMap.set(o.productId, productProfitMap.get(o.productId)! + amt);
+
+    if (!productStats.has(o.productId)) {
+      productStats.set(o.productId, { count: 0, totalProfit: 0, conditions: { cash: 0, credit: 0, debt: 0, return: 0, other: 0 } });
+    }
+    const stat = productStats.get(o.productId)!;
+    stat.count += 1;
+    stat.totalProfit += amt;
+    if (o.dealCondition === 'credit') stat.conditions.credit += amt;
+    else if (o.dealCondition === 'debt') stat.conditions.debt += amt;
+    else if (o.dealCondition === 'return') stat.conditions.return += amt;
+    else if (o.dealCondition === 'full_payment') stat.conditions.cash += amt;
+    else stat.conditions.other += amt;
   });
+
+  const pieData = Array.from(productProfitMap.entries())
+    .map(([productId, value]) => ({
+      name: products.find(p => p.id === productId)?.name || 'Unknown',
+      value
+    }))
+    .filter(d => d.value > 0)
+    .sort((a, b) => b.value - a.value);
+
+  const COLORS = ['#ADFF2F', '#3b82f6', '#FF6B2B', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#eab308'];
+
+  const detailedProductStats = Array.from(productStats.entries()).map(([productId, stat]) => ({
+    product: products.find(p => p.id === productId) || { name: 'Unknown', id: productId } as Product,
+    ...stat
+  })).sort((a, b) => b.totalProfit - a.totalProfit);
 
   const months = Object.keys(monthlyStats).sort((a, b) => b.localeCompare(a));
 
@@ -2951,33 +3019,104 @@ const AccountingDashboard: React.FC<{ orders: Order[], t: T, lang: string }> = (
         </div>
       </div>
 
-      <div className="bg-dark-2 border border-white/5 p-6">
-        <h3 className="text-sm font-black tracking-[0.2em] text-white mb-6">{lang === 'ru' ? 'СТАТИСТИКА ПО МЕСЯЦАМ' : 'MONTHLY STATS'}</h3>
-        {months.length === 0 ? (
-          <div className="text-white/20 text-xs">{lang === 'ru' ? 'Нет данных для отображения' : 'No data to display'}</div>
-        ) : (
-          <div className="space-y-4">
-            {months.map(m => (
-              <div key={m} className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0 gap-4">
-                <div className="text-volt font-bold text-lg tracking-wider w-32">{m}</div>
-                <div className="flex-1 w-full grid grid-cols-3 gap-4 text-xs">
-                  <div>
-                    <div className="text-[9px] text-white/30 mb-1">{lang === 'ru' ? 'КАССА' : 'CASH'}</div>
-                    <div className="text-white font-bold">{fmt(monthlyStats[m].real)}</div>
-                  </div>
-                  <div>
-                    <div className="text-[9px] text-blue-400/50 mb-1">{lang === 'ru' ? 'КРЕДИТ' : 'CREDIT'}</div>
-                    <div className="text-blue-400 font-bold">{fmt(monthlyStats[m].credit)}</div>
-                  </div>
-                  <div>
-                    <div className="text-[9px] text-red-400/50 mb-1">{lang === 'ru' ? 'ДОЛГ' : 'DEBT'}</div>
-                    <div className="text-red-400 font-bold">{fmt(monthlyStats[m].debt)}</div>
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Pie Chart */}
+        <div className="bg-dark-2 border border-white/5 p-6">
+          <h3 className="text-sm font-black tracking-[0.2em] text-white mb-6">{lang === 'ru' ? 'ДОЛЯ ПРИБЫЛИ (ПО ТОВАРАМ)' : 'PROFIT SHARE (BY PRODUCT)'}</h3>
+          <div className="h-64">
+            {pieData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                    {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                  </Pie>
+                  <RechartsTooltip contentStyle={{ backgroundColor: '#111', borderColor: '#333' }} itemStyle={{ color: '#fff' }} formatter={(value: number) => fmt(value)} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-white/20 text-xs">Нет данных</div>
+            )}
+          </div>
+        </div>
+
+        {/* Monthly Stats */}
+        <div className="bg-dark-2 border border-white/5 p-6">
+          <h3 className="text-sm font-black tracking-[0.2em] text-white mb-6">{lang === 'ru' ? 'СТАТИСТИКА ПО МЕСЯЦАМ' : 'MONTHLY STATS'}</h3>
+          {months.length === 0 ? (
+            <div className="text-white/20 text-xs">{lang === 'ru' ? 'Нет данных для отображения' : 'No data to display'}</div>
+          ) : (
+            <div className="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2">
+              {months.map(m => (
+                <div key={m} className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0 gap-4">
+                  <div className="text-volt font-bold text-lg tracking-wider w-32">{m}</div>
+                  <div className="flex-1 w-full grid grid-cols-3 gap-4 text-xs">
+                    <div>
+                      <div className="text-[9px] text-white/30 mb-1">{lang === 'ru' ? 'КАССА' : 'CASH'}</div>
+                      <div className="text-white font-bold">{fmt(monthlyStats[m].real)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-blue-400/50 mb-1">{lang === 'ru' ? 'КРЕДИТ' : 'CREDIT'}</div>
+                      <div className="text-blue-400 font-bold">{fmt(monthlyStats[m].credit)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[9px] text-red-400/50 mb-1">{lang === 'ru' ? 'ДОЛГ' : 'DEBT'}</div>
+                      <div className="text-red-400 font-bold">{fmt(monthlyStats[m].debt)}</div>
+                    </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Detailed Product Stats */}
+      <div className="bg-dark-2 border border-white/5 p-6">
+        <h3 className="text-sm font-black tracking-[0.2em] text-white mb-6">{lang === 'ru' ? 'ДЕТАЛИЗАЦИЯ ПО ТОВАРАМ' : 'PRODUCT DETAILS'}</h3>
+        <div className="grid md:grid-cols-2 gap-6">
+          {detailedProductStats.map(item => {
+            const barData = [
+              { name: lang === 'ru' ? 'Касса' : 'Cash', value: item.conditions.cash },
+              { name: lang === 'ru' ? 'Кредит' : 'Credit', value: item.conditions.credit },
+              { name: lang === 'ru' ? 'Долг' : 'Debt', value: item.conditions.debt },
+              { name: lang === 'ru' ? 'Возврат' : 'Return', value: item.conditions.return },
+              { name: lang === 'ru' ? 'Прочее' : 'Other', value: item.conditions.other },
+            ].filter(d => d.value > 0);
+
+            return (
+              <div key={item.product.id} className="border border-white/5 p-4 bg-dark-3 flex flex-col xl:flex-row gap-6">
+                <div className="flex-1 min-w-[150px]">
+                  <div className="text-volt font-bold mb-2 text-sm line-clamp-2" title={item.product.name}>{item.product.name}</div>
+                  <div className="text-[10px] text-white/40 mb-1">ПРОДАЖ: <span className="text-white ml-1">{item.count}</span></div>
+                  <div className="text-[10px] text-white/40 mb-2">ПРИБЫЛЬ: <span className="text-volt font-bold text-xs ml-1">{fmt(item.totalProfit)}</span></div>
+                </div>
+                <div className="flex-1 h-24 w-full min-w-[150px]">
+                  {barData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                        <XAxis type="number" hide />
+                        <YAxis dataKey="name" type="category" width={55} tick={{ fontSize: 9, fill: '#fff' }} axisLine={false} tickLine={false} />
+                        <RechartsTooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{ backgroundColor: '#111', borderColor: '#333', fontSize: '10px' }} formatter={(val: number) => fmt(val)} />
+                        <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={12}>
+                          {barData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={
+                              entry.name === 'Касса' || entry.name === 'Cash' ? '#ADFF2F' : 
+                              entry.name === 'Кредит' || entry.name === 'Credit' ? '#3b82f6' : 
+                              entry.name === 'Долг' || entry.name === 'Debt' ? '#ef4444' : '#8b5cf6'
+                            } />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-[10px] text-white/20">Нет данных о прибыли</div>
+                  )}
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
