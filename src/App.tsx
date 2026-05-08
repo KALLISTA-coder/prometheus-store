@@ -1,4 +1,5 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import Fuse from 'fuse.js';
 import {
   Phone, MessageCircle, MapPin, Clock, Star,
   ShieldCheck, Package, Truck, BarChart3, Eye,
@@ -497,8 +498,10 @@ const App: React.FC = () => {
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null);
   const [showNewPromo, setShowNewPromo] = useState(false);
 
-  // Filter
+  // Filter & Search
   const [filterCat, setFilterCat] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'new'|'cheap'|'expensive'|'benefit'>('new');
 
   const t: T = translations[lang];
 
@@ -756,7 +759,43 @@ const App: React.FC = () => {
     }));
   };
 
-  const filteredProducts = filterCat === 'all' ? products : products.filter(p => p.category === filterCat);
+  const filteredProducts = useMemo(() => {
+    let result = products;
+
+    // 1. Category/Tag Filter
+    if (filterCat !== 'all') {
+      if (filterCat === 'hit') {
+        result = result.filter(p => p.tags.some(t => t.toLowerCase() === 'хит' || t.toLowerCase() === 'hit'));
+      } else if (filterCat === 'discount') {
+        result = result.filter(p => p.tags.some(t => t.toLowerCase() === 'скидка' || t.toLowerCase() === 'sale' || t.toLowerCase() === 'discount'));
+      } else {
+        result = result.filter(p => p.category === filterCat);
+      }
+    }
+
+    // 2. Search (Fuse)
+    if (searchQuery.trim() !== '') {
+      const fuse = new Fuse(result, {
+        keys: ['name', 'nameEn', 'tags', 'tagsEn', 'category'],
+        threshold: 0.3,
+      });
+      result = fuse.search(searchQuery).map(res => res.item);
+    }
+
+    // 3. Sorting
+    result = [...result].sort((a, b) => {
+      if (sortBy === 'cheap') return a.price - b.price;
+      if (sortBy === 'expensive') return b.price - a.price;
+      if (sortBy === 'benefit') {
+        const benefitA = a.marketAverage && a.marketAverage > a.price ? (a.marketAverage - a.price) / a.marketAverage : 0;
+        const benefitB = b.marketAverage && b.marketAverage > b.price ? (b.marketAverage - b.price) / b.marketAverage : 0;
+        return benefitB - benefitA;
+      }
+      return b.sortOrder - a.sortOrder; // 'new'
+    });
+
+    return result;
+  }, [products, filterCat, searchQuery, sortBy]);
 
   const openProductPage = (p: Product) => { setSelectedProduct(p); window.scrollTo(0, 0); };
 
@@ -953,25 +992,59 @@ const App: React.FC = () => {
               </div>
             </div>
             <SectionHeader title={t.catalog} code="SEC.001 // PRODUCTS" />
-            <div className="flex flex-wrap items-center gap-2 mb-8 pb-4 border-b border-white/5">
-              <button onClick={() => setFilterCat('all')}
-                className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm
-                  ${filterCat === 'all' ? 'bg-volt text-dark' : 'bg-white/5 text-white/40 hover:text-white/70 border border-white/10'}`}>
-                {lang === 'ru' ? 'ВСЕ' : 'ALL'} [{products.length}]
-              </button>
-              {categories.map(cat => {
-                const count = products.filter(p => p.category === cat.id).length;
-                return (
-                  <button key={cat.id} onClick={() => setFilterCat(cat.id)}
-                    className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
-                    style={filterCat === cat.id
-                      ? { background: cat.color, color: '#0A0A0A', borderColor: cat.color }
-                      : { background: `${cat.color}10`, color: `${cat.color}AA`, borderColor: `${cat.color}30` }
-                    }>
-                    {(lang === 'ru' ? cat.name : cat.nameEn).toUpperCase()} [{count}]
-                  </button>
-                );
-              })}
+            <div className="flex flex-col gap-4 mb-8 pb-4 border-b border-white/5">
+              <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center w-full">
+                {/* Search */}
+                <div className="relative w-full md:w-96">
+                  <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                    placeholder={lang === 'ru' ? 'Поиск товара, бренда...' : 'Search product...'}
+                    className="w-full bg-dark-3 border border-white/10 focus:border-volt px-4 py-2.5 text-xs text-white transition-colors" />
+                </div>
+                {/* Sort */}
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                  <span className="text-[10px] text-white/30 tracking-wider hidden sm:block">{lang === 'ru' ? 'СОРТИРОВАТЬ:' : 'SORT:'}</span>
+                  <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
+                    className="flex-1 md:flex-none bg-dark-3 border border-white/10 focus:border-volt px-3 py-2.5 text-xs text-white appearance-none">
+                    <option value="new">{lang === 'ru' ? 'Сначала новые' : 'Newest'}</option>
+                    <option value="cheap">{lang === 'ru' ? 'Сначала дешевые' : 'Cheapest'}</option>
+                    <option value="expensive">{lang === 'ru' ? 'Сначала дорогие' : 'Expensive'}</option>
+                    <option value="benefit">{lang === 'ru' ? 'Максимальная выгода' : 'Best Benefit'}</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Quick Filters & Categories */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button onClick={() => setFilterCat('all')}
+                  className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm
+                    ${filterCat === 'all' ? 'bg-volt text-dark' : 'bg-white/5 text-white/40 hover:text-white/70 border border-white/10'}`}>
+                  {lang === 'ru' ? 'ВСЕ' : 'ALL'} [{products.length}]
+                </button>
+                <button onClick={() => setFilterCat('hit')}
+                  className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
+                  style={filterCat === 'hit' ? { background: '#FF6B2B', color: '#0A0A0A', borderColor: '#FF6B2B' } : { background: '#FF6B2B10', color: '#FF6B2BAA', borderColor: '#FF6B2B30' }}>
+                  {lang === 'ru' ? 'ХИТЫ' : 'HITS'}
+                </button>
+                <button onClick={() => setFilterCat('discount')}
+                  className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
+                  style={filterCat === 'discount' ? { background: '#3b82f6', color: '#0A0A0A', borderColor: '#3b82f6' } : { background: '#3b82f610', color: '#3b82f6AA', borderColor: '#3b82f630' }}>
+                  {lang === 'ru' ? 'СКИДКИ' : 'SALE'}
+                </button>
+                <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
+                {categories.map(cat => {
+                  const count = products.filter(p => p.category === cat.id).length;
+                  return (
+                    <button key={cat.id} onClick={() => setFilterCat(cat.id)}
+                      className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
+                      style={filterCat === cat.id
+                        ? { background: cat.color, color: '#0A0A0A', borderColor: cat.color }
+                        : { background: `${cat.color}10`, color: `${cat.color}AA`, borderColor: `${cat.color}30` }
+                      }>
+                      {(lang === 'ru' ? cat.name : cat.nameEn).toUpperCase()} [{count}]
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             {/* 2-3 column grid */}
@@ -2397,7 +2470,12 @@ const ProductCard: React.FC<{
             alt={product.name}
             className="w-full h-full object-contain object-center opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500"
           />
-          <div className="absolute top-2 right-2 z-10">
+          <div className="absolute top-2 right-2 z-10 flex flex-col items-end gap-1">
+            {product.marketAverage && product.marketAverage > product.price ? (
+              <div className="bg-red-500 text-white px-2 py-0.5 text-[9px] font-black tracking-wider clip-badge-sm shadow-[0_0_10px_rgba(239,68,68,0.5)]">
+                {lang === 'ru' ? 'ВЫГОДА' : 'BENEFIT'} {Math.round(((product.marketAverage - product.price) / product.marketAverage) * 100)}%
+              </div>
+            ) : null}
             <DataTag variant={product.status === 'in-stock' ? 'volt' : 'cyber'}>
               {product.status === 'in-stock' ? t.inStock : t.preOrder}
             </DataTag>
