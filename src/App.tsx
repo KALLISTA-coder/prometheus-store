@@ -1603,7 +1603,7 @@ const App: React.FC = () => {
 
                 {/* Admin tabs */}
                 <div className="flex gap-1 mb-6 overflow-x-auto pb-2">
-                  {(['orders', 'products', 'categories', 'reviews', 'promos', 'addresses', 'settings', 'analytics'] as const).map(tab => (
+                  {(['orders', 'products', 'categories', 'reviews', 'promos', 'addresses', 'settings', 'analytics', 'accounting'] as const).map(tab => (
                     <button key={tab} onClick={() => {
                       setAdminTab(tab);
                       // Mark orders as seen when visiting orders tab
@@ -1613,7 +1613,8 @@ const App: React.FC = () => {
                         ${adminTab === tab ? 'bg-cyber text-dark' : 'bg-white/5 text-white/30 hover:bg-white/10'}`}>
                       {tab === 'orders' ? t.manageOrders : tab === 'products' ? t.manageProducts : tab === 'categories' ? t.manageCategories
                         : tab === 'reviews' ? t.manageReviews : tab === 'promos' ? t.managePromos
-                        : tab === 'addresses' ? t.manageAddresses : tab === 'settings' ? t.settings : t.analytics}
+                        : tab === 'addresses' ? t.manageAddresses : tab === 'settings' ? t.settings 
+                        : tab === 'accounting' ? (lang === 'ru' ? 'БУХГАЛТЕРИЯ' : 'ACCOUNTING') : t.analytics}
                       {tab === 'orders' && newOrdersCount > 0 && <NotifBadge count={newOrdersCount} />}
                       {tab === 'reviews' && newReviewsCount > 0 && <NotifBadge count={newReviewsCount} />}
                     </button>
@@ -2186,6 +2187,11 @@ const App: React.FC = () => {
                       </div>
                     ))}
                   </div>
+                )}
+
+                {/* Accounting tab */}
+                {adminTab === 'accounting' && (
+                  <AccountingDashboard orders={orders} t={t} lang={lang} />
                 )}
               </>
             )}
@@ -2806,6 +2812,99 @@ const ProductDetailPage: React.FC<{
     </section>
   );
 };
+
+/* ═══════════════════════════════════════════════════════
+   ACCOUNTING DASHBOARD (Admin)
+   ═══════════════════════════════════════════════════════ */
+const AccountingDashboard: React.FC<{ orders: Order[], t: T, lang: string }> = ({ orders, t, lang }) => {
+  const completed = orders.filter(o => o.status === 'completed' && o.profitAmount !== undefined);
+  
+  let totalReal = 0;
+  let totalCredit = 0;
+  let totalDebt = 0;
+
+  const currentMonthStr = new Date().toISOString().substring(0, 7); // "YYYY-MM"
+  let currentMonthReal = 0;
+
+  const monthlyStats: Record<string, { real: number, credit: number, debt: number }> = {};
+
+  completed.forEach(o => {
+    const monthKey = o.date ? o.date.substring(0, 7) : 'Unknown';
+    if (!monthlyStats[monthKey]) monthlyStats[monthKey] = { real: 0, credit: 0, debt: 0 };
+    
+    const amt = o.profitAmount || 0;
+    if (o.dealCondition === 'credit') {
+      totalCredit += amt;
+      monthlyStats[monthKey].credit += amt;
+    } else if (o.dealCondition === 'debt') {
+      totalDebt += amt;
+      monthlyStats[monthKey].debt += amt;
+    } else {
+      totalReal += amt;
+      monthlyStats[monthKey].real += amt;
+      if (monthKey === currentMonthStr) {
+        currentMonthReal += amt;
+      }
+    }
+  });
+
+  const months = Object.keys(monthlyStats).sort((a, b) => b.localeCompare(a));
+
+  return (
+    <div className="animate-fade-in space-y-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-dark-3 border border-volt/20 p-5 relative overflow-hidden">
+          <div className="text-[10px] text-white/40 tracking-[0.2em] mb-2">{lang === 'ru' ? 'ЧИСТАЯ ПРИБЫЛЬ (ВСЕ ВРЕМЯ)' : 'NET PROFIT (ALL TIME)'}</div>
+          <div className="text-3xl font-black text-volt">{fmt(totalReal)} KGS</div>
+          <Crosshairs color="border-volt/10" />
+        </div>
+        <div className="bg-dark-3 border border-white/10 p-5 relative overflow-hidden">
+          <div className="text-[10px] text-white/40 tracking-[0.2em] mb-2">{lang === 'ru' ? 'ПРИБЫЛЬ (ТЕК. МЕСЯЦ)' : 'PROFIT (THIS MONTH)'}</div>
+          <div className="text-3xl font-black text-white">{fmt(currentMonthReal)} KGS</div>
+          <Crosshairs color="border-white/5" />
+        </div>
+        <div className="bg-dark-3 border border-blue-500/20 p-5 relative overflow-hidden">
+          <div className="text-[10px] text-blue-400/50 tracking-[0.2em] mb-2">{lang === 'ru' ? 'ОЖИДАЕМЫЕ (КРЕДИТ)' : 'EXPECTED (CREDIT)'}</div>
+          <div className="text-3xl font-black text-blue-400">{fmt(totalCredit)} KGS</div>
+        </div>
+        <div className="bg-dark-3 border border-red-500/20 p-5 relative overflow-hidden">
+          <div className="text-[10px] text-red-400/50 tracking-[0.2em] mb-2">{lang === 'ru' ? 'ДОЛГИ' : 'DEBT'}</div>
+          <div className="text-3xl font-black text-red-400">{fmt(totalDebt)} KGS</div>
+        </div>
+      </div>
+
+      <div className="bg-dark-2 border border-white/5 p-6">
+        <h3 className="text-sm font-black tracking-[0.2em] text-white mb-6">{lang === 'ru' ? 'СТАТИСТИКА ПО МЕСЯЦАМ' : 'MONTHLY STATS'}</h3>
+        {months.length === 0 ? (
+          <div className="text-white/20 text-xs">{lang === 'ru' ? 'Нет данных для отображения' : 'No data to display'}</div>
+        ) : (
+          <div className="space-y-4">
+            {months.map(m => (
+              <div key={m} className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0 gap-4">
+                <div className="text-volt font-bold text-lg tracking-wider w-32">{m}</div>
+                <div className="flex-1 w-full grid grid-cols-3 gap-4 text-xs">
+                  <div>
+                    <div className="text-[9px] text-white/30 mb-1">{lang === 'ru' ? 'КАССА' : 'CASH'}</div>
+                    <div className="text-white font-bold">{fmt(monthlyStats[m].real)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-blue-400/50 mb-1">{lang === 'ru' ? 'КРЕДИТ' : 'CREDIT'}</div>
+                    <div className="text-blue-400 font-bold">{fmt(monthlyStats[m].credit)}</div>
+                  </div>
+                  <div>
+                    <div className="text-[9px] text-red-400/50 mb-1">{lang === 'ru' ? 'ДОЛГ' : 'DEBT'}</div>
+                    <div className="text-red-400 font-bold">{fmt(monthlyStats[m].debt)}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 
 /* ═══════════════════════════════════════════════════════
    ORDER COMPLETE FORM (Admin)
