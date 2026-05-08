@@ -1660,11 +1660,12 @@ const App: React.FC = () => {
                                       {o.status === 'completed' && o.profitAmount !== undefined && (
                                         <div className="text-[9px] text-white/40 mt-1">
                                           💰 {o.profitAmount} KGS ({
+                                            o.dealCondition === 'full_payment' ? o.profitLabel :
                                             o.dealCondition === 'return' ? 'Возврат' : 
                                             o.dealCondition === 'credit' ? 'В кредит' : 
                                             o.dealCondition === 'debt' ? 'В долг' : 
                                             o.dealCondition === 'extra_costs' ? 'Доп. издержки' : 
-                                            o.profitLabel
+                                            o.dealCondition
                                           })
                                         </div>
                                       )}
@@ -2818,8 +2819,13 @@ const OrderCompleteForm: React.FC<{
   
   const [profitLabel, setProfitLabel] = useState(order.profitLabel || profitOptions[0]?.label || 'Кастомная сумма');
   const [profitAmount, setProfitAmount] = useState<number>(order.profitAmount ?? (profitOptions[0]?.amount || 0));
-  const [dealCondition, setDealCondition] = useState(order.dealCondition || 'full_payment');
   
+  const standardConditions = ['full_payment', 'credit', 'debt', 'return', 'extra_costs'];
+  const initialCondition = order.dealCondition || 'full_payment';
+  const isInitialStandard = standardConditions.includes(initialCondition);
+  const [conditionType, setConditionType] = useState(isInitialStandard ? initialCondition : 'custom');
+  const [customCondition, setCustomCondition] = useState(isInitialStandard ? '' : initialCondition);
+
   const inputCls = "w-full bg-dark-3 border border-white/10 focus:border-volt px-3 py-2 text-xs text-white transition-colors";
   const labelCls = "text-[10px] text-white/30 tracking-wider block mb-1";
 
@@ -2851,19 +2857,29 @@ const OrderCompleteForm: React.FC<{
         )}
       </div>
 
-      <div className="mb-6">
-        <label className={labelCls}>УСЛОВИЯ СДЕЛКИ</label>
-        <select value={dealCondition} onChange={e => setDealCondition(e.target.value)} className={`${inputCls} appearance-none`}>
-          <option value="full_payment">Полная оплата</option>
-          <option value="credit">В кредит</option>
-          <option value="debt">В долг</option>
-          <option value="return">Возврат</option>
-          <option value="extra_costs">Доп. издержки</option>
-        </select>
+      <div className="mb-6 grid md:grid-cols-2 gap-4">
+        <div>
+          <label className={labelCls}>УСЛОВИЯ СДЕЛКИ</label>
+          <select value={conditionType} onChange={e => setConditionType(e.target.value)} className={`${inputCls} appearance-none`}>
+            <option value="full_payment">Полная оплата</option>
+            <option value="credit">В кредит</option>
+            <option value="debt">В долг</option>
+            <option value="return">Возврат</option>
+            <option value="extra_costs">Доп. издержки</option>
+            <option value="custom">Другое (ввести вручную)</option>
+          </select>
+        </div>
+
+        {conditionType === 'custom' && (
+          <div>
+            <label className={labelCls}>ОПИСАНИЕ УСЛОВИЯ</label>
+            <input type="text" value={customCondition} onChange={e => setCustomCondition(e.target.value)} placeholder="Например: Обмен на б/у..." className={inputCls} />
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3">
-        <button onClick={() => onSave({ ...order, profitAmount, profitLabel, dealCondition })} 
+        <button onClick={() => onSave({ ...order, profitAmount, profitLabel, dealCondition: conditionType === 'custom' ? customCondition : conditionType })} 
           className="flex-1 bg-volt text-dark py-3 text-xs font-black tracking-[0.2em] clip-badge hover:bg-white transition-colors flex items-center justify-center gap-2">
           <CheckCircle className="w-4 h-4" /> ЗАВЕРШИТЬ ЗАКАЗ
         </button>
