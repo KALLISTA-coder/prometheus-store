@@ -472,6 +472,7 @@ const App: React.FC = () => {
 
   // Admin
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [completingOrder, setCompletingOrder] = useState<Order | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [newCategoryForm, setNewCategoryForm] = useState({ name: '', nameEn: '', color: '#ADFF2F' });
   const [showNewCategory, setShowNewCategory] = useState(false);
@@ -730,11 +731,16 @@ const App: React.FC = () => {
   const deletePromo = (id: string) => { setPromotions(prev => prev.filter(p => p.id !== id)); dbDeletePromotion(id); };
 
   // Order actions
-  const completeOrder = (id: string) => {
+  const completeOrder = (updatedOrder: Order) => {
     setOrders(prev => prev.map(o => {
-      if (o.id === id) { const updated = { ...o, status: 'completed' as const, isNew: false }; dbUpdateOrder(updated); return updated; }
+      if (o.id === updatedOrder.id) { 
+        const finalOrder = { ...updatedOrder, status: 'completed' as const, isNew: false }; 
+        dbUpdateOrder(finalOrder); 
+        return finalOrder; 
+      }
       return o;
     }));
+    setCompletingOrder(null);
   };
   const cancelOrder = (id: string) => {
     setOrders(prev => prev.map(o => {
@@ -1616,39 +1622,54 @@ const App: React.FC = () => {
 
                 {/* ── Orders tab ── */}
                 {adminTab === 'orders' && (
-                  <div className="bg-dark-2 border border-white/5 overflow-hidden animate-fade-in">
-                    {orders.length === 0 ? (
-                      <div className="text-center py-12 text-white/20 text-sm">{t.noData}</div>
+                  <div className="animate-fade-in">
+                    {completingOrder ? (
+                      <OrderCompleteForm 
+                        order={completingOrder} 
+                        products={products} 
+                        t={t} 
+                        onSave={completeOrder} 
+                        onCancel={() => setCompletingOrder(null)} 
+                      />
                     ) : (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-xs">
-                          <thead><tr className="bg-white/5">
-                            <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.orderDate}</th>
-                            <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.orderProduct}</th>
-                            <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.orderPhone}</th>
-                            <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.orderMessenger}</th>
-                            <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.status}</th>
-                            <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.actions}</th>
-                          </tr></thead>
-                          <tbody>
-                            {orders.map(o => (
-                              <tr key={o.id} className={`border-t border-white/5 hover:bg-white/[0.02] ${o.isNew ? 'bg-cyber/5' : ''}`}>
-                                <td className="p-3 text-white/40">{o.date}</td>
-                                <td className="p-3 text-white/80 font-bold">{o.productName}</td>
-                                <td className="p-3 text-volt font-bold">{o.phone}</td>
-                                <td className="p-3"><DataTag variant={o.messenger === 'whatsapp' ? 'volt' : 'blue'}>{o.messenger.toUpperCase()}</DataTag></td>
-                                <td className="p-3">
-                                  <DataTag variant={o.status === 'new' ? 'cyber' : o.status === 'completed' ? 'volt' : 'red'}>
-                                    {o.status === 'new' ? t.orderNew : o.status === 'completed' ? t.orderCompleted : t.orderCancelled}
-                                  </DataTag>
-                                </td>
-                                <td className="p-3">
-                                  <div className="flex gap-1">
-                                    {o.status === 'new' && (
-                                      <>
-                                        <button onClick={() => completeOrder(o.id)} className="p-1.5 bg-white/5 hover:bg-volt/20 text-white/40 hover:text-volt transition-all" title={t.markCompleted}>
-                                          <CheckCircle className="w-3 h-3" />
-                                        </button>
+                      <div className="bg-dark-2 border border-white/5 overflow-hidden">
+                        {orders.length === 0 ? (
+                          <div className="text-center py-12 text-white/20 text-sm">{t.noData}</div>
+                        ) : (
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-xs">
+                              <thead><tr className="bg-white/5">
+                                <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.orderDate}</th>
+                                <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.orderProduct}</th>
+                                <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.orderPhone}</th>
+                                <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.orderMessenger}</th>
+                                <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.status}</th>
+                                <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.actions}</th>
+                              </tr></thead>
+                              <tbody>
+                                {orders.map(o => (
+                                  <tr key={o.id} className={`border-t border-white/5 hover:bg-white/[0.02] ${o.isNew ? 'bg-cyber/5' : ''}`}>
+                                    <td className="p-3 text-white/40">{o.date}</td>
+                                    <td className="p-3 text-white/80 font-bold">{o.productName}</td>
+                                    <td className="p-3 text-volt font-bold">{o.phone}</td>
+                                    <td className="p-3"><DataTag variant={o.messenger === 'whatsapp' ? 'volt' : 'blue'}>{o.messenger.toUpperCase()}</DataTag></td>
+                                    <td className="p-3">
+                                      <DataTag variant={o.status === 'new' ? 'cyber' : o.status === 'completed' ? 'volt' : 'red'}>
+                                        {o.status === 'new' ? t.orderNew : o.status === 'completed' ? t.orderCompleted : t.orderCancelled}
+                                      </DataTag>
+                                      {o.status === 'completed' && o.profitAmount !== undefined && (
+                                        <div className="text-[9px] text-white/40 mt-1">
+                                          💰 {o.profitAmount} KGS ({o.dealCondition === 'return' ? 'Возврат' : o.profitLabel})
+                                        </div>
+                                      )}
+                                    </td>
+                                    <td className="p-3">
+                                      <div className="flex gap-1">
+                                        {o.status === 'new' && (
+                                          <>
+                                            <button onClick={() => setCompletingOrder(o)} className="p-1.5 bg-white/5 hover:bg-volt/20 text-white/40 hover:text-volt transition-all" title={t.markCompleted}>
+                                              <CheckCircle className="w-3 h-3" />
+                                            </button>
                                         <button onClick={() => cancelOrder(o.id)} className="p-1.5 bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all" title={t.markCancelled}>
                                           <XCircle className="w-3 h-3" />
                                         </button>
@@ -1667,8 +1688,10 @@ const App: React.FC = () => {
                     )}
                   </div>
                 )}
+              </div>
+            )}
 
-                {/* Products tab */}
+            {/* Products tab */}
                 {adminTab === 'products' && (
                   <div className="animate-fade-in">
                     {editingProduct && (
@@ -2769,6 +2792,71 @@ const ProductDetailPage: React.FC<{
         </div>
       </div>
     </section>
+  );
+};
+
+/* ═══════════════════════════════════════════════════════
+   ORDER COMPLETE FORM (Admin)
+   ═══════════════════════════════════════════════════════ */
+const OrderCompleteForm: React.FC<{
+  order: Order; products: Product[]; t: T;
+  onSave: (o: Order) => void; onCancel: () => void;
+}> = ({ order, products, t, onSave, onCancel }) => {
+  const product = products.find(p => p.id === order.productId);
+  const profitOptions = product?.profitOptions || [];
+  
+  const [profitLabel, setProfitLabel] = useState(profitOptions[0]?.label || 'Кастомная сумма');
+  const [profitAmount, setProfitAmount] = useState<number>(profitOptions[0]?.amount || 0);
+  const [dealCondition, setDealCondition] = useState('full_payment');
+  
+  const inputCls = "w-full bg-dark-3 border border-white/10 focus:border-volt px-3 py-2 text-xs text-white transition-colors";
+  const labelCls = "text-[10px] text-white/30 tracking-wider block mb-1";
+
+  return (
+    <div className="bg-dark-3 border border-volt/20 p-6">
+      <h3 className="text-sm font-black tracking-[0.2em] text-volt mb-6">ЗАВЕРШЕНИЕ ЗАКАЗА: {order.productName}</h3>
+      
+      <div className="grid md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <label className={labelCls}>ВЫБОР ПРИБЫЛИ</label>
+          <select value={profitLabel} onChange={e => {
+            setProfitLabel(e.target.value);
+            const opt = profitOptions.find(o => o.label === e.target.value);
+            if (opt) setProfitAmount(opt.amount);
+            else setProfitAmount(0);
+          }} className={`${inputCls} appearance-none`}>
+            {profitOptions.map((opt, i) => (
+              <option key={i} value={opt.label}>{opt.label} ({opt.amount} KGS)</option>
+            ))}
+            <option value="Кастомная сумма">Кастомная сумма</option>
+          </select>
+        </div>
+        
+        {profitLabel === 'Кастомная сумма' && (
+          <div>
+            <label className={labelCls}>СУММА ПРИБЫЛИ (KGS)</label>
+            <input type="number" value={profitAmount} onChange={e => setProfitAmount(Number(e.target.value))} className={inputCls} />
+          </div>
+        )}
+      </div>
+
+      <div className="mb-6">
+        <label className={labelCls}>УСЛОВИЯ СДЕЛКИ</label>
+        <select value={dealCondition} onChange={e => setDealCondition(e.target.value)} className={`${inputCls} appearance-none`}>
+          <option value="full_payment">Полная оплата</option>
+          <option value="return">Возврат</option>
+          <option value="extra_costs">Доп. издержки</option>
+        </select>
+      </div>
+
+      <div className="flex gap-3">
+        <button onClick={() => onSave({ ...order, profitAmount, profitLabel, dealCondition })} 
+          className="flex-1 bg-volt text-dark py-3 text-xs font-black tracking-[0.2em] clip-badge hover:bg-white transition-colors flex items-center justify-center gap-2">
+          <CheckCircle className="w-4 h-4" /> ЗАВЕРШИТЬ ЗАКАЗ
+        </button>
+        <button onClick={onCancel} className="px-8 py-3 bg-white/5 text-white/40 text-xs font-bold tracking-wider hover:bg-white/10 transition-colors">{t.cancel}</button>
+      </div>
+    </div>
   );
 };
 

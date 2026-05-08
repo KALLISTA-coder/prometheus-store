@@ -171,6 +171,9 @@ function dbToOrder(row: any): Order {
     date: row.date || '',
     status: row.status || 'new',
     isNew: row.is_new ?? true,
+    profitAmount: row.profit_amount ? Number(row.profit_amount) : undefined,
+    profitLabel: row.profit_label || '',
+    dealCondition: row.deal_condition || 'full_payment',
   };
 }
 
@@ -184,6 +187,9 @@ function orderToDb(o: Order): any {
     date: o.date,
     status: o.status,
     is_new: o.isNew ?? true,
+    profit_amount: o.profitAmount,
+    profit_label: o.profitLabel || '',
+    deal_condition: o.dealCondition || 'full_payment',
   };
 }
 

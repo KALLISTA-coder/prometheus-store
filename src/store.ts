@@ -73,6 +73,9 @@ export interface Order {
   date: string;
   status: 'new' | 'completed' | 'cancelled';
   isNew?: boolean;
+  profitAmount?: number;
+  profitLabel?: string;
+  dealCondition?: string;
 }
 
 export interface SiteSettings {
@@ -147,7 +150,7 @@ export const initialCategories: Category[] = [
 // → вставь ссылку в массив photos: ['https://i.imgur.com/XXXXXX.jpg']
 // =================================================================
 
-export const initialProducts: Product[] = [
+export const initialProducts: any[] = [
   {
     id: 'w6001-pro',
     name: 'Кресло W6001 Bio-Mechanical Pro',
