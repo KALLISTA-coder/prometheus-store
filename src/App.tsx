@@ -430,7 +430,7 @@ const App: React.FC = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [section, setSection] = useState('hero');
-  const [adminTab, setAdminTab] = useState<'products' | 'categories' | 'reviews' | 'analytics' | 'addresses' | 'promos' | 'orders' | 'settings'>('products');
+  const [adminTab, setAdminTab] = useState<'products' | 'categories' | 'reviews' | 'analytics' | 'addresses' | 'promos' | 'orders' | 'settings' | 'accounting'>('products');
 
   // State — initially use defaults, then load from Supabase
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -2929,7 +2929,7 @@ const ProductDetailPage: React.FC<{
 /* ═══════════════════════════════════════════════════════
    ACCOUNTING DASHBOARD (Admin)
    ═══════════════════════════════════════════════════════ */
-const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T, lang: string }> = ({ orders, products, t, lang }) => {
+const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T, lang: string }> = ({ orders, products, lang }) => {
   const completed = orders.filter(o => o.status === 'completed' && o.profitAmount !== undefined);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   
@@ -2963,8 +2963,6 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
       if (monthKey === currentMonthStr) {
         currentMonthReal += amt;
       }
-    }
-
     }
   });
 
@@ -3039,7 +3037,7 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                    {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                    {pieData.map((_entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                   </Pie>
                   <RechartsTooltip 
                     contentStyle={{ backgroundColor: '#111', borderColor: '#333', color: '#fff' }} 
