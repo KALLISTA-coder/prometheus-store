@@ -2931,6 +2931,7 @@ const ProductDetailPage: React.FC<{
    ═══════════════════════════════════════════════════════ */
 const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T, lang: string }> = ({ orders, products, t, lang }) => {
   const completed = orders.filter(o => o.status === 'completed' && o.profitAmount !== undefined);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   
   let totalReal = 0;
   let totalCredit = 0;
@@ -2944,6 +2945,7 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
   const productProfitMap = new Map<string, number>();
   const productStats = new Map<string, { count: number; totalProfit: number; conditions: { cash: number, credit: number, debt: number, return: number, other: number } }>();
 
+  // 1. Calculate overall stats based on all completed orders
   completed.forEach(o => {
     const monthKey = o.date ? o.date.substring(0, 7) : 'Unknown';
     if (!monthlyStats[monthKey]) monthlyStats[monthKey] = { real: 0, credit: 0, debt: 0 };
@@ -2962,6 +2964,15 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
         currentMonthReal += amt;
       }
     }
+
+    }
+  });
+
+  // 2. Calculate product stats based on filtered orders (all or selected month)
+  const filteredOrders = selectedMonth ? completed.filter(o => o.date?.startsWith(selectedMonth)) : completed;
+
+  filteredOrders.forEach(o => {
+    const amt = o.profitAmount || 0;
 
     if (!productProfitMap.has(o.productId)) productProfitMap.set(o.productId, 0);
     productProfitMap.set(o.productId, productProfitMap.get(o.productId)! + amt);
@@ -3001,21 +3012,21 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-dark-3 border border-volt/20 p-5 relative overflow-hidden">
           <div className="text-[10px] text-white/40 tracking-[0.2em] mb-2">{lang === 'ru' ? 'ЧИСТАЯ ПРИБЫЛЬ (ВСЕ ВРЕМЯ)' : 'NET PROFIT (ALL TIME)'}</div>
-          <div className="text-3xl font-black text-volt">{fmt(totalReal)} KGS</div>
+          <div className="text-3xl font-black text-volt">{fmt(totalReal)}</div>
           <Crosshairs color="border-volt/10" />
         </div>
         <div className="bg-dark-3 border border-white/10 p-5 relative overflow-hidden">
           <div className="text-[10px] text-white/40 tracking-[0.2em] mb-2">{lang === 'ru' ? 'ПРИБЫЛЬ (ТЕК. МЕСЯЦ)' : 'PROFIT (THIS MONTH)'}</div>
-          <div className="text-3xl font-black text-white">{fmt(currentMonthReal)} KGS</div>
+          <div className="text-3xl font-black text-white">{fmt(currentMonthReal)}</div>
           <Crosshairs color="border-white/5" />
         </div>
         <div className="bg-dark-3 border border-blue-500/20 p-5 relative overflow-hidden">
           <div className="text-[10px] text-blue-400/50 tracking-[0.2em] mb-2">{lang === 'ru' ? 'ОЖИДАЕМЫЕ (КРЕДИТ)' : 'EXPECTED (CREDIT)'}</div>
-          <div className="text-3xl font-black text-blue-400">{fmt(totalCredit)} KGS</div>
+          <div className="text-3xl font-black text-blue-400">{fmt(totalCredit)}</div>
         </div>
         <div className="bg-dark-3 border border-red-500/20 p-5 relative overflow-hidden">
           <div className="text-[10px] text-red-400/50 tracking-[0.2em] mb-2">{lang === 'ru' ? 'ДОЛГИ' : 'DEBT'}</div>
-          <div className="text-3xl font-black text-red-400">{fmt(totalDebt)} KGS</div>
+          <div className="text-3xl font-black text-red-400">{fmt(totalDebt)}</div>
         </div>
       </div>
 
@@ -3030,7 +3041,16 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
                   <Pie data={pieData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
                     {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                   </Pie>
-                  <RechartsTooltip contentStyle={{ backgroundColor: '#111', borderColor: '#333' }} itemStyle={{ color: '#fff' }} formatter={(value: number) => fmt(value)} />
+                  <RechartsTooltip 
+                    contentStyle={{ backgroundColor: '#111', borderColor: '#333', color: '#fff' }} 
+                    itemStyle={{ color: '#fff' }} 
+                    labelStyle={{ color: '#fff' }}
+                    formatter={(value: number, name: string) => {
+                      const totalPie = pieData.reduce((acc, curr) => acc + curr.value, 0);
+                      const percent = Math.round((value / totalPie) * 100);
+                      return [`${fmt(value)} (${percent}%)`, name];
+                    }} 
+                  />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -3048,8 +3068,13 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
           ) : (
             <div className="space-y-4 max-h-64 overflow-y-auto custom-scrollbar pr-2">
               {months.map(m => (
-                <div key={m} className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-white/5 pb-4 last:border-0 last:pb-0 gap-4">
-                  <div className="text-volt font-bold text-lg tracking-wider w-32">{m}</div>
+                <div key={m} 
+                  onClick={() => setSelectedMonth(selectedMonth === m ? null : m)}
+                  className={`flex flex-col md:flex-row items-start md:items-center justify-between border-b border-white/5 p-3 last:border-0 cursor-pointer transition-colors ${selectedMonth === m ? 'bg-volt/10 border-l-2 border-l-volt' : 'hover:bg-white/5'}`}>
+                  <div className={`font-bold text-lg tracking-wider w-32 ${selectedMonth === m ? 'text-volt' : 'text-white/70'}`}>
+                    {m}
+                    {selectedMonth === m && <div className="text-[8px] text-volt/50 uppercase mt-1">ФИЛЬТР АКТИВЕН</div>}
+                  </div>
                   <div className="flex-1 w-full grid grid-cols-3 gap-4 text-xs">
                     <div>
                       <div className="text-[9px] text-white/30 mb-1">{lang === 'ru' ? 'КАССА' : 'CASH'}</div>
@@ -3097,7 +3122,16 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
                       <BarChart data={barData} layout="vertical" margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                         <XAxis type="number" hide />
                         <YAxis dataKey="name" type="category" width={55} tick={{ fontSize: 9, fill: '#fff' }} axisLine={false} tickLine={false} />
-                        <RechartsTooltip cursor={{fill: 'rgba(255,255,255,0.05)'}} contentStyle={{ backgroundColor: '#111', borderColor: '#333', fontSize: '10px' }} formatter={(val: number) => fmt(val)} />
+                        <RechartsTooltip 
+                          cursor={{fill: 'rgba(255,255,255,0.05)'}} 
+                          contentStyle={{ backgroundColor: '#111', borderColor: '#333', fontSize: '10px', color: '#fff' }} 
+                          itemStyle={{ color: '#fff' }}
+                          labelStyle={{ color: '#fff' }}
+                          formatter={(val: number, name: string) => {
+                            const percent = Math.round((val / item.totalProfit) * 100);
+                            return [`${fmt(val)} (${percent}%)`, name];
+                          }} 
+                        />
                         <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={12}>
                           {barData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={
