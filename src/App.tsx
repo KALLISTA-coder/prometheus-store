@@ -1659,7 +1659,13 @@ const App: React.FC = () => {
                                       </DataTag>
                                       {o.status === 'completed' && o.profitAmount !== undefined && (
                                         <div className="text-[9px] text-white/40 mt-1">
-                                          💰 {o.profitAmount} KGS ({o.dealCondition === 'return' ? 'Возврат' : o.profitLabel})
+                                          💰 {o.profitAmount} KGS ({
+                                            o.dealCondition === 'return' ? 'Возврат' : 
+                                            o.dealCondition === 'credit' ? 'В кредит' : 
+                                            o.dealCondition === 'debt' ? 'В долг' : 
+                                            o.dealCondition === 'extra_costs' ? 'Доп. издержки' : 
+                                            o.profitLabel
+                                          })
                                         </div>
                                       )}
                                     </td>
@@ -1670,11 +1676,16 @@ const App: React.FC = () => {
                                             <button onClick={() => setCompletingOrder(o)} className="p-1.5 bg-white/5 hover:bg-volt/20 text-white/40 hover:text-volt transition-all" title={t.markCompleted}>
                                               <CheckCircle className="w-3 h-3" />
                                             </button>
-                                        <button onClick={() => cancelOrder(o.id)} className="p-1.5 bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all" title={t.markCancelled}>
-                                          <XCircle className="w-3 h-3" />
-                                        </button>
-                                      </>
-                                    )}
+                                            <button onClick={() => cancelOrder(o.id)} className="p-1.5 bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all" title={t.markCancelled}>
+                                              <XCircle className="w-3 h-3" />
+                                            </button>
+                                          </>
+                                        )}
+                                        {o.status === 'completed' && (
+                                          <button onClick={() => setCompletingOrder(o)} className="p-1.5 bg-white/5 hover:bg-volt/20 text-white/40 hover:text-volt transition-all" title="Редактировать прибыль">
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                          </button>
+                                        )}
                                     <button onClick={() => deleteOrder(o.id)} className="p-1.5 bg-white/5 hover:bg-red-500/20 text-white/40 hover:text-red-400 transition-all" title={t.delete}>
                                       <Trash2 className="w-3 h-3" />
                                     </button>
@@ -2805,9 +2816,9 @@ const OrderCompleteForm: React.FC<{
   const product = products.find(p => p.id === order.productId);
   const profitOptions = product?.profitOptions || [];
   
-  const [profitLabel, setProfitLabel] = useState(profitOptions[0]?.label || 'Кастомная сумма');
-  const [profitAmount, setProfitAmount] = useState<number>(profitOptions[0]?.amount || 0);
-  const [dealCondition, setDealCondition] = useState('full_payment');
+  const [profitLabel, setProfitLabel] = useState(order.profitLabel || profitOptions[0]?.label || 'Кастомная сумма');
+  const [profitAmount, setProfitAmount] = useState<number>(order.profitAmount ?? (profitOptions[0]?.amount || 0));
+  const [dealCondition, setDealCondition] = useState(order.dealCondition || 'full_payment');
   
   const inputCls = "w-full bg-dark-3 border border-white/10 focus:border-volt px-3 py-2 text-xs text-white transition-colors";
   const labelCls = "text-[10px] text-white/30 tracking-wider block mb-1";
@@ -2844,6 +2855,8 @@ const OrderCompleteForm: React.FC<{
         <label className={labelCls}>УСЛОВИЯ СДЕЛКИ</label>
         <select value={dealCondition} onChange={e => setDealCondition(e.target.value)} className={`${inputCls} appearance-none`}>
           <option value="full_payment">Полная оплата</option>
+          <option value="credit">В кредит</option>
+          <option value="debt">В долг</option>
           <option value="return">Возврат</option>
           <option value="extra_costs">Доп. издержки</option>
         </select>
