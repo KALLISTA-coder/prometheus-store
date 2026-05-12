@@ -467,7 +467,7 @@ const App: React.FC = () => {
   const [inquiryType, setInquiryType] = useState<'whatsapp' | 'telegram'>('whatsapp');
   const [phone, setPhone] = useState('');
   const [showReviewModal, setShowReviewModal] = useState(false);
-  const [reviewForm, setReviewForm] = useState({ name: '', phone: '', text: '', rating: 5 });
+  const [reviewForm, setReviewForm] = useState<{ name: string; phone: string; text: string; rating: number; photo: File | null }>({ name: '', phone: '', text: '', rating: 5, photo: null });
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedPromo, setSelectedPromo] = useState<Promotion | null>(null);
@@ -673,17 +673,23 @@ const App: React.FC = () => {
     setInquiryProduct(null); setPhone('');
   };
 
-  const handleReviewSubmit = () => {
+  const handleReviewSubmit = async () => {
     if (!reviewForm.name || !reviewForm.phone || !reviewForm.text) return;
+    let photoUrl: string | undefined;
+    if (reviewForm.photo) {
+      const url = await uploadProductImage(reviewForm.photo, `reviews/${Date.now()}`);
+      if (url) photoUrl = url;
+    }
     const newReview: Review = {
       id: `r${Date.now()}`, author: reviewForm.name, rating: reviewForm.rating,
       text: reviewForm.text, textEn: reviewForm.text,
       date: new Date().toISOString().split('T')[0], approved: false, productId: '', isNew: true,
+      photoUrl,
     };
     setReviews(prev => [...prev, newReview]);
     dbInsertReview(newReview);
     setReviewSubmitted(true);
-    setTimeout(() => { setShowReviewModal(false); setReviewSubmitted(false); setReviewForm({ name: '', phone: '', text: '', rating: 5 }); }, 2000);
+    setTimeout(() => { setShowReviewModal(false); setReviewSubmitted(false); setReviewForm({ name: '', phone: '', text: '', rating: 5, photo: null }); }, 2000);
   };
 
   const saveProduct = (p: Product) => {
@@ -1801,6 +1807,8 @@ const App: React.FC = () => {
                             description: '', descriptionEn: '',
                             sortOrder: products.length,
                             profitOptions: [],
+                            videoUrls: [],
+                            realPhotos: [],
                           })}
                           className="flex items-center gap-2 bg-volt text-dark px-6 py-3 text-[10px] font-black tracking-[0.2em] clip-badge hover:bg-white transition-colors">
                           <Plus className="w-4 h-4" /> {t.addProduct || 'ДОБАВИТЬ ТОВАР'}
@@ -1940,6 +1948,7 @@ const App: React.FC = () => {
                           <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.author}</th>
                           <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.rating}</th>
                           <th className="text-left p-3 text-white/30 font-bold tracking-wider">{lang === 'ru' ? 'ТЕКСТ' : 'TEXT'}</th>
+                          <th className="text-left p-3 text-white/30 font-bold tracking-wider">{lang === 'ru' ? 'ФОТО' : 'PHOTO'}</th>
                           <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.status}</th>
                           <th className="text-left p-3 text-white/30 font-bold tracking-wider">{t.actions}</th>
                         </tr></thead>
@@ -1949,6 +1958,15 @@ const App: React.FC = () => {
                               <td className="p-3 text-white/80 font-bold">{r.author}</td>
                               <td className="p-3"><div className="flex gap-0.5">{Array.from({ length: r.rating }).map((_, i) => <Star key={i} className="w-3 h-3 fill-cyber text-cyber" />)}</div></td>
                               <td className="p-3 text-white/40 max-w-[200px] truncate">{r.text}</td>
+                              <td className="p-3">
+                                {r.photoUrl ? (
+                                  <a href={r.photoUrl} target="_blank" rel="noopener noreferrer">
+                                    <img src={r.photoUrl} alt="Фото отзыва" className="w-12 h-12 object-cover border border-white/10 hover:border-cyber/30 transition-colors" />
+                                  </a>
+                                ) : (
+                                  <span className="text-white/10 text-[9px]">—</span>
+                                )}
+                              </td>
                               <td className="p-3"><DataTag variant={r.approved ? 'volt' : 'cyber'}>{r.approved ? t.approved : t.pending}</DataTag></td>
                               <td className="p-3">
                                 <div className="flex gap-1">
@@ -2429,6 +2447,22 @@ const App: React.FC = () => {
                   <div><label className="text-[10px] text-white/30 tracking-wider block mb-1">{t.yourReview} *</label>
                     <textarea value={reviewForm.text} onChange={e => setReviewForm({ ...reviewForm, text: e.target.value })}
                       rows={4} className="w-full bg-dark-3 border border-white/10 focus:border-cyber px-4 py-2.5 text-white text-xs transition-colors resize-none" /></div>
+                  <div>
+                    <label className="text-[10px] text-white/30 tracking-wider block mb-1">{lang === 'ru' ? 'ФОТО (необязательно)' : 'PHOTO (optional)'}</label>
+                    <div className="flex items-center gap-3">
+                      <label className="flex-1 border border-dashed border-white/10 hover:border-cyber/30 py-2.5 flex items-center justify-center gap-2 cursor-pointer transition-colors hover:bg-cyber/5">
+                        <Image className="w-4 h-4 text-cyber/50" />
+                        <span className="text-[10px] text-white/30">{reviewForm.photo ? reviewForm.photo.name : (lang === 'ru' ? 'Прикрепить фото' : 'Attach photo')}</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={e => {
+                          const file = e.target.files?.[0] || null;
+                          setReviewForm({ ...reviewForm, photo: file });
+                        }} />
+                      </label>
+                      {reviewForm.photo && (
+                        <button onClick={() => setReviewForm({ ...reviewForm, photo: null })} className="text-red-400/50 hover:text-red-400 p-1"><X className="w-4 h-4" /></button>
+                      )}
+                    </div>
+                  </div>
                   <button onClick={handleReviewSubmit}
                     className="w-full bg-cyber text-dark py-3 text-xs font-black tracking-[0.2em] clip-badge hover:bg-cyber/80 transition-colors">{t.send}</button>
                 </div>
@@ -2920,8 +2954,60 @@ const ProductDetailPage: React.FC<{
               </svg> {t.telegram}
             </button>
           </div>
+
+          {/* Video Hub */}
+          {product.videoUrls && product.videoUrls.length > 0 && (
+            <div className="mt-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[10px] text-white/30 tracking-[0.2em]">🎬 {lang === 'ru' ? 'ВИДЕО ОБЗОРЫ' : 'VIDEO REVIEWS'}</span>
+              </div>
+              <div className="space-y-2">
+                {product.videoUrls.map((v, i) => (
+                  <a key={i} href={v.url} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-3 bg-dark-3 border border-white/5 hover:border-cyber/30 p-3 transition-all group">
+                    <div className={`w-10 h-10 rounded-sm flex items-center justify-center shrink-0 ${
+                      v.platform === 'YouTube' ? 'bg-red-600/20 text-red-400' :
+                      v.platform === 'TikTok' ? 'bg-pink-600/20 text-pink-400' :
+                      v.platform === 'Instagram' ? 'bg-purple-600/20 text-purple-400' :
+                      'bg-white/10 text-white/50'
+                    }`}>
+                      <ExternalLink className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] font-bold text-cyber tracking-wider">{v.platform}</div>
+                      <div className="text-[9px] text-white/30 truncate">{v.url}</div>
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-white/20 group-hover:text-cyber transition-colors shrink-0" />
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* Real Photos Section */}
+      {product.realPhotos && product.realPhotos.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+            <span className="text-xs font-black tracking-[0.2em] text-cyan-400 flex items-center gap-2">
+              📸 {lang === 'ru' ? 'ЖИВЫЕ ФОТО' : 'REAL PHOTOS'}
+            </span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-400/20 to-transparent" />
+          </div>
+          <div className="bg-dark-3/50 border border-cyan-400/10 p-4">
+            <p className="text-[10px] text-white/30 mb-3 text-center">{lang === 'ru' ? 'Фото товара в реальности от нашего склада' : 'Real product photos from our warehouse'}</p>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {product.realPhotos.map((photo, i) => (
+                <div key={i} className="aspect-square bg-dark-2 border border-white/5 overflow-hidden hover:border-cyan-400/30 transition-all">
+                  <img src={photo} alt={`${product.name} - Живое фото ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
@@ -3245,13 +3331,17 @@ const ProductEditForm: React.FC<{
   product: Product; t: T; categories: Category[];
   onSave: (p: Product) => void; onCancel: () => void;
 }> = ({ product: initial, t, categories, onSave, onCancel }) => {
-  const [p, setP] = useState<Product>({ ...initial, profitOptions: initial.profitOptions || [], sortOrder: initial.sortOrder ?? 0 });
+  const [p, setP] = useState<Product>({ ...initial, profitOptions: initial.profitOptions || [], videoUrls: initial.videoUrls || [], realPhotos: initial.realPhotos || [], sortOrder: initial.sortOrder ?? 0 });
   const [newTagRu, setNewTagRu] = useState('');
   const [newTagEn, setNewTagEn] = useState('');
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
+  const [newVideoUrl, setNewVideoUrl] = useState('');
+  const [newVideoPlatform, setNewVideoPlatform] = useState('YouTube');
+  const [newRealPhotoUrl, setNewRealPhotoUrl] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const realPhotoInputRef = React.useRef<HTMLInputElement>(null);
 
   const updateSpec = (idx: number, field: 'label' | 'value', val: string, isEn: boolean) => {
     if (isEn) { const specs = [...p.specsEn]; specs[idx] = { ...specs[idx], [field]: val }; setP({ ...p, specsEn: specs }); }
@@ -3437,6 +3527,94 @@ const ProductEditForm: React.FC<{
           {p.profitOptions.length === 0 && (
             <div className="text-[10px] text-white/20 py-2">Нет вариантов прибыли. Нажмите «Добавить».</div>
           )}
+        </div>
+      </div>
+
+      {/* Video URLs */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <label className={labelCls}>🎬 ВИДЕО ОБЗОРЫ</label>
+        </div>
+        <div className="space-y-2 mb-3">
+          {(p.videoUrls || []).map((v, i) => (
+            <div key={i} className="flex gap-2 items-center bg-dark-2 border border-white/5 p-2">
+              <span className="text-[9px] font-bold text-cyber tracking-wider shrink-0 w-16">{v.platform}</span>
+              <span className="text-[10px] text-white/50 truncate flex-1">{v.url}</span>
+              <button onClick={() => setP({ ...p, videoUrls: (p.videoUrls || []).filter((_, idx) => idx !== i) })}
+                className="p-1 text-red-400/50 hover:text-red-400 shrink-0"><XCircle className="w-4 h-4" /></button>
+            </div>
+          ))}
+          {(!p.videoUrls || p.videoUrls.length === 0) && (
+            <div className="text-[10px] text-white/20 py-2">Нет видео. Добавьте ссылку ниже.</div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <select value={newVideoPlatform} onChange={e => setNewVideoPlatform(e.target.value)}
+            className={`${inputCls} w-28 appearance-none shrink-0`}>
+            <option>YouTube</option>
+            <option>TikTok</option>
+            <option>Instagram</option>
+            <option>VK</option>
+            <option>Другое</option>
+          </select>
+          <input value={newVideoUrl} onChange={e => setNewVideoUrl(e.target.value)} className={inputCls} placeholder="Ссылка на видео..." />
+          <button onClick={() => {
+            if (!newVideoUrl) return;
+            setP({ ...p, videoUrls: [...(p.videoUrls || []), { platform: newVideoPlatform, url: newVideoUrl }] });
+            setNewVideoUrl('');
+          }} className="px-3 bg-white/5 text-white/40 hover:text-volt hover:bg-white/10 transition-all shrink-0"><Plus className="w-4 h-4" /></button>
+        </div>
+      </div>
+
+      {/* Real Photos */}
+      <div className="mb-6">
+        <label className={labelCls}>📸 ЖИВЫЕ ФОТО (фото в реальности)</label>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {(p.realPhotos || []).map((photo, i) => (
+            <div key={i} className="relative w-24 h-20 border border-cyan-400/20 overflow-hidden group">
+              <img src={photo} alt={`Живое фото ${i + 1}`} className="w-full h-full object-cover" />
+              <button onClick={async () => {
+                if (photo.includes('supabase.co')) await deleteProductImage(photo);
+                setP({ ...p, realPhotos: (p.realPhotos || []).filter((_, idx) => idx !== i) });
+              }} className="absolute top-0 right-0 bg-red-500/80 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <X className="w-3 h-3 text-white" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <input ref={realPhotoInputRef} type="file" accept="image/*" multiple className="hidden"
+          onChange={async (e) => {
+            const files = e.target.files;
+            if (!files || files.length === 0) return;
+            setUploading(true);
+            const newPhotos = [...(p.realPhotos || [])];
+            for (let i = 0; i < files.length; i++) {
+              if (files[i].size > 5 * 1024 * 1024) continue;
+              const url = await uploadProductImage(files[i], p.id + '-real');
+              if (url) newPhotos.push(url);
+            }
+            setP({ ...p, realPhotos: newPhotos });
+            setUploading(false);
+            if (realPhotoInputRef.current) realPhotoInputRef.current.value = '';
+          }}
+        />
+        <div className="flex gap-2 mb-2">
+          <button onClick={() => realPhotoInputRef.current?.click()} disabled={uploading}
+            className={`flex-1 border border-dashed border-cyan-400/20 hover:border-cyan-400/40 py-3 flex items-center justify-center gap-2 transition-all
+              ${uploading ? 'opacity-50 cursor-wait' : 'hover:bg-cyan-400/5'}`}>
+            <Image className="w-4 h-4 text-cyan-400" />
+            <span className="text-[10px] font-bold tracking-wider text-white/40">
+              {uploading ? 'ЗАГРУЗКА...' : 'ЗАГРУЗИТЬ ЖИВЫЕ ФОТО'}
+            </span>
+          </button>
+        </div>
+        <div className="flex gap-2">
+          <input value={newRealPhotoUrl} onChange={e => setNewRealPhotoUrl(e.target.value)} className={inputCls} placeholder="или URL: https://..." />
+          <button onClick={() => {
+            if (!newRealPhotoUrl) return;
+            setP({ ...p, realPhotos: [...(p.realPhotos || []), newRealPhotoUrl] });
+            setNewRealPhotoUrl('');
+          }} className="px-3 bg-white/5 text-white/40 hover:text-volt hover:bg-white/10 transition-all shrink-0"><Plus className="w-4 h-4" /></button>
         </div>
       </div>
 

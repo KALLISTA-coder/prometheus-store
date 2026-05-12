@@ -29,6 +29,8 @@ function dbToProduct(row: any): Product {
     descriptionEn: row.description_en || '',
     sortOrder: row.sort_order ?? 0,
     profitOptions: row.profit_options || [],
+    videoUrls: row.video_urls || [],
+    realPhotos: row.real_photos || [],
   };
 }
 
@@ -52,6 +54,8 @@ function productToDb(p: Product): any {
     description_en: p.descriptionEn,
     sort_order: p.sortOrder,
     profit_options: p.profitOptions,
+    video_urls: p.videoUrls || [],
+    real_photos: p.realPhotos || [],
   };
 }
 
@@ -66,6 +70,7 @@ function dbToReview(row: any): Review {
     approved: row.approved || false,
     productId: row.product_id || '',
     isNew: row.is_new ?? true,
+    photoUrl: row.photo_url || undefined,
   };
 }
 
@@ -80,6 +85,7 @@ function reviewToDb(r: Review): any {
     approved: r.approved,
     product_id: r.productId,
     is_new: r.isNew ?? true,
+    photo_url: r.photoUrl || null,
   };
 }
 

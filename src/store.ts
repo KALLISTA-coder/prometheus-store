@@ -17,6 +17,8 @@ export interface Product {
   descriptionEn: string;
   sortOrder: number;
   profitOptions: { label: string; amount: number }[];
+  videoUrls?: { platform: string; url: string }[];
+  realPhotos?: string[];
 }
 
 export interface Review {
@@ -29,6 +31,7 @@ export interface Review {
   approved: boolean;
   productId: string;
   isNew?: boolean;
+  photoUrl?: string;
 }
 
 export interface Category {
