@@ -3601,16 +3601,18 @@ const ProductEditForm: React.FC<{
             <div className="text-[10px] text-white/20 py-2">Нет видео. Добавьте ссылку ниже.</div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <select value={newVideoPlatform} onChange={e => setNewVideoPlatform(e.target.value)}
-            className={`${inputCls} w-28 appearance-none shrink-0`}>
+            className="bg-dark-3 border border-white/10 focus:border-volt px-3 py-2 text-xs text-white appearance-none w-28 shrink-0">
             <option>YouTube</option>
             <option>TikTok</option>
             <option>Instagram</option>
             <option>VK</option>
             <option>Другое</option>
           </select>
-          <input value={newVideoUrl} onChange={e => setNewVideoUrl(e.target.value)} className={inputCls} placeholder="Ссылка на видео..." />
+          <input value={newVideoUrl} onChange={e => setNewVideoUrl(e.target.value)}
+            className="flex-1 min-w-0 bg-dark-3 border border-white/10 focus:border-volt px-3 py-2 text-xs text-white transition-colors"
+            placeholder="Ссылка на видео..." />
           <button onClick={() => {
             if (!newVideoUrl) return;
             setP({ ...p, videoUrls: [...(p.videoUrls || []), { platform: newVideoPlatform, url: newVideoUrl }] });
