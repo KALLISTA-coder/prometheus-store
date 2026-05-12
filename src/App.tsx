@@ -772,9 +772,22 @@ const App: React.FC = () => {
     // 1. Category/Tag Filter
     if (filterCat !== 'all') {
       if (filterCat === 'hit') {
-        result = result.filter(p => p.tags.some(t => t.toLowerCase() === 'хит' || t.toLowerCase() === 'hit'));
+        // Auto: top products by completed orders count
+        const orderCounts = new Map<string, number>();
+        orders.filter(o => o.status === 'completed').forEach(o => {
+          orderCounts.set(o.productId, (orderCounts.get(o.productId) || 0) + 1);
+        });
+        const maxOrders = Math.max(...orderCounts.values(), 0);
+        if (maxOrders > 0) {
+          result = result.filter(p => (orderCounts.get(p.id) || 0) >= Math.max(1, Math.floor(maxOrders * 0.3)));
+        } else {
+          result = [];
+        }
       } else if (filterCat === 'discount') {
-        result = result.filter(p => p.tags.some(t => t.toLowerCase() === 'скидка' || t.toLowerCase() === 'sale' || t.toLowerCase() === 'discount'));
+        // Auto: products with tag 'скидка'/'sale'/'discount' OR where price dropped
+        result = result.filter(p => 
+          p.tags.some(t => t.toLowerCase() === 'скидка' || t.toLowerCase() === 'sale' || t.toLowerCase() === 'discount')
+        );
       } else {
         result = result.filter(p => p.category === filterCat);
       }
@@ -1027,16 +1040,30 @@ const App: React.FC = () => {
                     ${filterCat === 'all' ? 'bg-volt text-dark' : 'bg-white/5 text-white/40 hover:text-white/70 border border-white/10'}`}>
                   {lang === 'ru' ? 'ВСЕ' : 'ALL'} [{products.length}]
                 </button>
-                <button onClick={() => setFilterCat('hit')}
-                  className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
-                  style={filterCat === 'hit' ? { background: '#FF6B2B', color: '#0A0A0A', borderColor: '#FF6B2B' } : { background: '#FF6B2B10', color: '#FF6B2BAA', borderColor: '#FF6B2B30' }}>
-                  {lang === 'ru' ? 'ХИТЫ' : 'HITS'}
-                </button>
-                <button onClick={() => setFilterCat('discount')}
-                  className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
-                  style={filterCat === 'discount' ? { background: '#3b82f6', color: '#0A0A0A', borderColor: '#3b82f6' } : { background: '#3b82f610', color: '#3b82f6AA', borderColor: '#3b82f630' }}>
-                  {lang === 'ru' ? 'СКИДКИ' : 'SALE'}
-                </button>
+                {(() => {
+                  // Count hits: products with at least 30% of max completed orders
+                  const orderCounts = new Map<string, number>();
+                  orders.filter(o => o.status === 'completed').forEach(o => {
+                    orderCounts.set(o.productId, (orderCounts.get(o.productId) || 0) + 1);
+                  });
+                  const maxOrd = Math.max(...orderCounts.values(), 0);
+                  const hitCount = maxOrd > 0 ? products.filter(p => (orderCounts.get(p.id) || 0) >= Math.max(1, Math.floor(maxOrd * 0.3))).length : 0;
+                  const discountCount = products.filter(p => p.tags.some(t => t.toLowerCase() === 'скидка' || t.toLowerCase() === 'sale' || t.toLowerCase() === 'discount')).length;
+                  return (
+                    <>
+                      <button onClick={() => setFilterCat('hit')}
+                        className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
+                        style={filterCat === 'hit' ? { background: '#FF6B2B', color: '#0A0A0A', borderColor: '#FF6B2B' } : { background: '#FF6B2B10', color: '#FF6B2BAA', borderColor: '#FF6B2B30' }}>
+                        🔥 {lang === 'ru' ? 'ХИТЫ' : 'HITS'} [{hitCount}]
+                      </button>
+                      <button onClick={() => setFilterCat('discount')}
+                        className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
+                        style={filterCat === 'discount' ? { background: '#3b82f6', color: '#0A0A0A', borderColor: '#3b82f6' } : { background: '#3b82f610', color: '#3b82f6AA', borderColor: '#3b82f630' }}>
+                        🏷️ {lang === 'ru' ? 'СКИДКИ' : 'SALE'} [{discountCount}]
+                      </button>
+                    </>
+                  );
+                })()}
                 <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block" />
                 {categories.map(cat => {
                   const count = products.filter(p => p.category === cat.id).length;
@@ -1458,6 +1485,11 @@ const App: React.FC = () => {
                     </div>
                   </div>
                   <p className="text-xs text-white/50 leading-relaxed">{lang === 'ru' ? review.text : review.textEn}</p>
+                  {review.photoUrl && (
+                    <div className="mt-3">
+                      <img src={review.photoUrl} alt={`Фото от ${review.author}`} className="max-h-48 rounded border border-white/10 object-cover" />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -3371,7 +3403,17 @@ const ProductEditForm: React.FC<{
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-4">
-        <div><label className={labelCls}>{t.productPrice}</label><input type="number" value={p.price} onChange={e => setP({ ...p, price: Number(e.target.value) })} className={inputCls} /></div>
+        <div>
+          <label className={labelCls}>{t.productPrice}</label>
+          <input type="number" value={p.price} onChange={e => setP({ ...p, price: Number(e.target.value) })} className={inputCls} />
+          {/* Auto discount prompt */}
+          {initial.price > 0 && p.price < initial.price && !p.tags.some(t => t.toLowerCase() === 'скидка' || t.toLowerCase() === 'sale') && (
+            <button onClick={() => setP({ ...p, tags: [...p.tags, 'Скидка'], tagsEn: [...p.tagsEn, 'Sale'] })}
+              className="mt-1 w-full bg-blue-500/10 border border-blue-500/20 text-blue-400 py-1.5 text-[9px] font-bold tracking-wider hover:bg-blue-500/20 transition-all flex items-center justify-center gap-1">
+              🏷️ Указать как скидку? (было {initial.price.toLocaleString()} → {p.price.toLocaleString()})
+            </button>
+          )}
+        </div>
         <div><label className={labelCls}>{t.marketAvgPrice}</label><input type="number" value={p.marketAverage} onChange={e => setP({ ...p, marketAverage: Number(e.target.value) })} className={inputCls} /></div>
         <div><label className={labelCls}>{t.marketLowPrice}</label><input type="number" value={p.marketLowest} onChange={e => setP({ ...p, marketLowest: Number(e.target.value) })} className={inputCls} /></div>
       </div>
@@ -3537,11 +3579,22 @@ const ProductEditForm: React.FC<{
         </div>
         <div className="space-y-2 mb-3">
           {(p.videoUrls || []).map((v, i) => (
-            <div key={i} className="flex gap-2 items-center bg-dark-2 border border-white/5 p-2">
-              <span className="text-[9px] font-bold text-cyber tracking-wider shrink-0 w-16">{v.platform}</span>
-              <span className="text-[10px] text-white/50 truncate flex-1">{v.url}</span>
+            <div key={i} className="flex gap-3 items-center bg-dark-2 border border-white/5 p-3 hover:border-white/10 transition-colors">
+              <div className={`w-8 h-8 rounded-sm flex items-center justify-center shrink-0 text-[10px] font-black ${
+                v.platform === 'YouTube' ? 'bg-red-600/20 text-red-400' :
+                v.platform === 'TikTok' ? 'bg-pink-500/20 text-pink-400' :
+                v.platform === 'Instagram' ? 'bg-purple-500/20 text-purple-400' :
+                v.platform === 'VK' ? 'bg-blue-500/20 text-blue-400' :
+                'bg-white/10 text-white/50'
+              }`}>
+                {v.platform.slice(0, 2).toUpperCase()}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[10px] font-bold text-white/70 tracking-wider">{v.platform}</div>
+                <a href={v.url} target="_blank" rel="noopener noreferrer" className="text-[9px] text-cyber/60 hover:text-cyber truncate block">{v.url}</a>
+              </div>
               <button onClick={() => setP({ ...p, videoUrls: (p.videoUrls || []).filter((_, idx) => idx !== i) })}
-                className="p-1 text-red-400/50 hover:text-red-400 shrink-0"><XCircle className="w-4 h-4" /></button>
+                className="p-1.5 text-red-400/30 hover:text-red-400 shrink-0 transition-colors"><XCircle className="w-4 h-4" /></button>
             </div>
           ))}
           {(!p.videoUrls || p.videoUrls.length === 0) && (
