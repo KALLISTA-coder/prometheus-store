@@ -117,9 +117,9 @@ const FlyingReviews: React.FC<{ reviews: Review[] }> = ({ reviews }) => {
 const GeoCatalog: React.FC = () => {
   /* Floating soft orbs — gradient blurs that drift slowly */
   const orbs = [
-    { x: 10, y: 15, size: 180, color: '#ADFF2F', dur: 35, dx1: 80, dy1: -40, dx2: -30, dy2: 50, dx3: 60, dy3: -20 },
+    { x: 10, y: 15, size: 180, color: '#FF6B2B', dur: 35, dx1: 80, dy1: -40, dx2: -30, dy2: 50, dx3: 60, dy3: -20 },
     { x: 75, y: 25, size: 140, color: '#FF6B2B', dur: 28, dx1: -60, dy1: 30, dx2: 40, dy2: -60, dx3: -20, dy3: 40 },
-    { x: 40, y: 60, size: 200, color: '#ADFF2F', dur: 42, dx1: 50, dy1: -70, dx2: -40, dy2: 20, dx3: 30, dy3: -50 },
+    { x: 40, y: 60, size: 200, color: '#FF6B2B', dur: 42, dx1: 50, dy1: -70, dx2: -40, dy2: 20, dx3: 30, dy3: -50 },
     { x: 85, y: 70, size: 120, color: '#3b82f6', dur: 32, dx1: -40, dy1: -50, dx2: 60, dy2: 30, dx3: -50, dy3: -40 },
     { x: 20, y: 80, size: 160, color: '#FF6B2B', dur: 38, dx1: 70, dy1: -30, dx2: -20, dy2: -60, dx3: 40, dy3: 20 },
   ];
@@ -142,7 +142,7 @@ const GeoCatalog: React.FC = () => {
       {[0, 1, 2].map(i => (
         <div key={`ls-${i}`} className="absolute" style={{
           top: `${20 + i * 30}%`, height: '1px', width: '300px',
-          background: `linear-gradient(90deg, transparent, ${i % 2 === 0 ? '#ADFF2F' : '#FF6B2B'}30, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${i % 2 === 0 ? '#FF6B2B' : '#FF6B2B'}30, transparent)`,
           animation: `line-sweep-h ${18 + i * 8}s linear ${i * 5}s infinite`,
         }} />
       ))}
@@ -155,7 +155,7 @@ const GeoCatalog: React.FC = () => {
         } as React.CSSProperties}>
           <div className="rounded-full" style={{
             width: 3 + (i % 4) * 2, height: 3 + (i % 4) * 2,
-            background: ['#ADFF2F', '#FF6B2B', '#3b82f6'][i % 3],
+            background: ['#FF6B2B', '#FF6B2B', '#3b82f6'][i % 3],
           }} />
         </div>
       ))}
@@ -224,20 +224,20 @@ const GeoAbout: React.FC = () => {
       <svg className="absolute inset-0 w-full h-full" fill="none">
         {conns.map(([a, b], i) => (
           <line key={`cn-${i}`} x1={`${nodes[a].x}%`} y1={`${nodes[a].y}%`} x2={`${nodes[b].x}%`} y2={`${nodes[b].y}%`}
-            stroke="#ADFF2F" strokeWidth="0.4" opacity="0.05" strokeDasharray="4 8" style={{ animation: `dash-march 3s linear ${i * 0.3}s infinite` }} />
+            stroke="#FF6B2B" strokeWidth="0.4" opacity="0.05" strokeDasharray="4 8" style={{ animation: `dash-march 3s linear ${i * 0.3}s infinite` }} />
         ))}
       </svg>
       {/* Blinking nodes */}
       {nodes.map((n, i) => (
         <div key={i} className="absolute" style={{ left: `${n.x}%`, top: `${n.y}%`, animation: `node-blink ${2.5 + (i % 5)}s ease-in-out ${i * 0.5}s infinite` }}>
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: i % 4 === 0 ? '#FF6B2B' : '#ADFF2F', boxShadow: `0 0 6px ${i % 4 === 0 ? '#FF6B2B' : '#ADFF2F'}40` }} />
+          <div className="w-1.5 h-1.5 rounded-full" style={{ background: i % 4 === 0 ? '#FF6B2B' : '#FF6B2B', boxShadow: `0 0 6px ${i % 4 === 0 ? '#FF6B2B' : '#FF6B2B'}40` }} />
         </div>
       ))}
       {/* Straight horizontal light lines */}
       {[0, 1, 2].map(i => (
         <div key={`line-${i}`} className="absolute" style={{
           top: `${15 + i * 30}%`, height: '1px', width: '160px',
-          background: `linear-gradient(90deg, transparent, ${['#ADFF2F', '#FF6B2B', '#ADFF2F'][i]}25, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${['#FF6B2B', '#FF6B2B', '#FF6B2B'][i]}25, transparent)`,
           animation: `${i % 2 === 0 ? 'traverse' : 'traverse-rev'} ${22 + i * 8}s linear ${i * 7}s infinite`,
           '--t-op': '0.4',
         } as React.CSSProperties} />
@@ -247,7 +247,7 @@ const GeoAbout: React.FC = () => {
         <div key={`br-${i}`} className="absolute rounded-full" style={{
           left: `${r.x}%`, top: `${r.y}%`,
           width: 100 + i * 60, height: 100 + i * 60,
-          border: `1px solid ${i === 0 ? '#ADFF2F' : '#FF6B2B'}`,
+          border: `1px solid ${i === 0 ? '#FF6B2B' : '#FF6B2B'}`,
           animation: `ring-breathe ${8 + i * 4}s ease-in-out ${i * 3}s infinite`,
         }} />
       ))}
@@ -281,7 +281,7 @@ const GeoReviews: React.FC = () => {
       {[0, 1, 2].map(i => (
         <div key={`t-${i}`} className="absolute" style={{
           top: `${15 + i * 30}%`, height: '1px', width: '180px',
-          background: `linear-gradient(90deg, transparent, ${['#f59e0b', '#FF6B2B', '#ADFF2F'][i]}30, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${['#f59e0b', '#FF6B2B', '#FF6B2B'][i]}30, transparent)`,
           '--t-op': '0.4',
           animation: `${i % 2 === 0 ? 'traverse' : 'traverse-rev'} ${20 + i * 8}s linear ${i * 5}s infinite`,
         } as React.CSSProperties} />
@@ -301,19 +301,19 @@ const GeoContact: React.FC = () => {
         {[80, 160, 240].map((size, i) => (
           <div key={`cr-${i}`} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full" style={{
             width: size, height: size,
-            border: `1px solid ${i % 2 === 0 ? '#ADFF2F' : '#FF6B2B'}`,
+            border: `1px solid ${i % 2 === 0 ? '#FF6B2B' : '#FF6B2B'}`,
             opacity: 0.05,
           }} />
         ))}
         <div className="absolute top-1/2 left-1/2 origin-[0_0]" style={{ animation: 'radar-beam 6s linear infinite' }}>
           <div className="w-[130px] h-[1px]" style={{ background: 'linear-gradient(90deg, rgba(173,255,47,0.25), transparent)' }} />
         </div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: '#ADFF2F', opacity: 0.25, boxShadow: '0 0 10px #ADFF2F50' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full" style={{ background: '#FF6B2B', opacity: 0.25, boxShadow: '0 0 10px #FF6B2B50' }} />
       </div>
       {/* Sonar rings */}
       {[{ x: 20, y: 25, d: 0 }, { x: 75, y: 40, d: 2.5 }, { x: 40, y: 75, d: 5 }].map((p, i) => (
         <div key={`sr-${i}`} className="absolute" style={{ left: `${p.x}%`, top: `${p.y}%` }}>
-          <div className="w-6 h-6 border rounded-full" style={{ borderColor: `${i % 2 === 0 ? '#ADFF2F' : '#FF6B2B'}20`, animation: `sonar-ring 4s linear ${p.d}s infinite` }} />
+          <div className="w-6 h-6 border rounded-full" style={{ borderColor: `${i % 2 === 0 ? '#FF6B2B' : '#FF6B2B'}20`, animation: `sonar-ring 4s linear ${p.d}s infinite` }} />
         </div>
       ))}
       {/* Subtle grid */}
@@ -339,7 +339,7 @@ const GeoAdmin: React.FC = () => {
             {Array.from({ length: 8 }, (_, j) => (
               <div key={j} className="rounded-full" style={{
                 width: 3, height: 3,
-                background: (i + j) % 3 === 0 ? '#FF6B2B' : '#ADFF2F',
+                background: (i + j) % 3 === 0 ? '#FF6B2B' : '#FF6B2B',
                 opacity: 0.15,
               }} />
             ))}
@@ -350,7 +350,7 @@ const GeoAdmin: React.FC = () => {
       {[{ x: 20, y: 30 }, { x: 75, y: 60 }].map((p, i) => (
         <div key={`sh-${i}`} className="absolute" style={{ left: `${p.x}%`, top: `${p.y}%`, animation: `hex-spin ${20 + i * 10}s linear infinite` }}>
           <svg width="70" height="70" viewBox="0 0 60 60" fill="none" opacity="0.04">
-            <polygon points="30,2 56,17 56,43 30,58 4,43 4,17" stroke={i === 0 ? '#FF6B2B' : '#ADFF2F'} strokeWidth="0.8" />
+            <polygon points="30,2 56,17 56,43 30,58 4,43 4,17" stroke={i === 0 ? '#FF6B2B' : '#FF6B2B'} strokeWidth="0.8" />
           </svg>
         </div>
       ))}
@@ -368,7 +368,7 @@ const GeoProductDetail: React.FC = () => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Large soft orbs */}
       {[
-        { x: 80, y: 10, size: 200, color: '#ADFF2F', dur: 30 },
+        { x: 80, y: 10, size: 200, color: '#FF6B2B', dur: 30 },
         { x: 10, y: 50, size: 160, color: '#FF6B2B', dur: 38 },
         { x: 60, y: 75, size: 180, color: '#3b82f6', dur: 34 },
       ].map((o, i) => (
@@ -387,7 +387,7 @@ const GeoProductDetail: React.FC = () => {
       {[0, 1].map(i => (
         <div key={`c-${i}`} className="absolute" style={{
           top: `${25 + i * 40}%`, height: '1px', width: '140px',
-          background: `linear-gradient(90deg, transparent, ${i === 0 ? '#ADFF2F' : '#FF6B2B'}25, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${i === 0 ? '#FF6B2B' : '#FF6B2B'}25, transparent)`,
           '--t-op': '0.3',
           animation: `${i === 0 ? 'traverse' : 'traverse-rev'} ${25 + i * 10}s linear ${i * 8}s infinite`,
         } as React.CSSProperties} />
@@ -476,7 +476,7 @@ const App: React.FC = () => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [completingOrder, setCompletingOrder] = useState<Order | null>(null);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [newCategoryForm, setNewCategoryForm] = useState({ name: '', nameEn: '', color: '#ADFF2F' });
+  const [newCategoryForm, setNewCategoryForm] = useState({ name: '', nameEn: '', color: '#FF6B2B' });
   const [showNewCategory, setShowNewCategory] = useState(false);
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
@@ -511,8 +511,8 @@ const App: React.FC = () => {
   const newReviewsCount = reviews.filter(r => !r.approved && r.isNew).length;
 
   // Get category color
-  const getCatColor = (catId: string) => categories.find(c => c.id === catId)?.color || '#ADFF2F';
-  const activeCatColor = filterCat !== 'all' ? getCatColor(filterCat) : '#ADFF2F';
+  const getCatColor = (catId: string) => categories.find(c => c.id === catId)?.color || '#FF6B2B';
+  const activeCatColor = filterCat !== 'all' ? getCatColor(filterCat) : '#FF6B2B';
 
   const nav = useCallback((s: string) => {
     setSection(s);
@@ -721,7 +721,7 @@ const App: React.FC = () => {
     const newCat: Category = { id: `cat-${Date.now()}`, name: newCategoryForm.name, nameEn: newCategoryForm.nameEn || newCategoryForm.name, count: 0, color: newCategoryForm.color };
     setCategories(prev => [...prev, newCat]);
     dbUpsertCategory(newCat);
-    setNewCategoryForm({ name: '', nameEn: '', color: '#ADFF2F' }); setShowNewCategory(false);
+    setNewCategoryForm({ name: '', nameEn: '', color: '#FF6B2B' }); setShowNewCategory(false);
   };
 
   // Address CRUD
@@ -851,16 +851,16 @@ const App: React.FC = () => {
               <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-bl from-dark-3 to-transparent" />
               <div className="absolute bottom-0 left-0 w-2/3 h-1/2 bg-gradient-to-tr from-volt/[0.03] to-transparent" />
               {/* Rotating diamond frames with glow */}
-              <div className="absolute top-16 right-16 w-72 h-72 border border-volt/15 rotate-45 hidden lg:block" style={{ animation: 'geo-drift-1 20s ease-in-out infinite', filter: 'drop-shadow(0 0 8px #ADFF2F15)' }} />
+              <div className="absolute top-16 right-16 w-72 h-72 border border-volt/15 rotate-45 hidden lg:block" style={{ animation: 'geo-drift-1 20s ease-in-out infinite', filter: 'drop-shadow(0 0 8px #FF6B2B15)' }} />
               <div className="absolute top-28 right-28 w-52 h-52 border border-cyber/15 rotate-45 hidden lg:block" style={{ animation: 'geo-drift-2 25s ease-in-out infinite' }} />
               <div className="absolute bottom-16 left-16 w-40 h-40 border border-volt/10 rotate-12 hidden lg:block" style={{ animation: 'geo-drift-1 18s ease-in-out infinite reverse' }} />
               <div className="absolute top-1/3 left-1/4 w-24 h-24 border border-cyber/8 rotate-[30deg] hidden lg:block" style={{ animation: 'geo-drift-2 15s ease-in-out infinite' }} />
               {/* Large neon traversing shapes */}
               {[
-                { top: 15, dur: 24, delay: 0, shape: 'hex', size: 90, color: '#ADFF2F' },
+                { top: 15, dur: 24, delay: 0, shape: 'hex', size: 90, color: '#FF6B2B' },
                 { top: 45, dur: 30, delay: 5, shape: 'tri', size: 70, color: '#FF6B2B' },
                 { top: 75, dur: 20, delay: 10, shape: 'circle', size: 50, color: '#3b82f6' },
-                { top: 60, dur: 28, delay: 3, shape: 'diamond', size: 60, color: '#ADFF2F' },
+                { top: 60, dur: 28, delay: 3, shape: 'diamond', size: 60, color: '#FF6B2B' },
               ].map((s, i) => (
                 <div key={`hero-shape-${i}`} className="absolute" style={{ top: `${s.top}%`, animation: `${i % 2 === 0 ? 'geo-traverse' : 'geo-traverse-rev'} ${s.dur}s linear ${s.delay}s infinite` }}>
                   <svg width={s.size} height={s.size} viewBox="0 0 60 60" fill="none" style={{ opacity: 0.08, filter: `drop-shadow(0 0 6px ${s.color}30)` }}>
@@ -874,20 +874,20 @@ const App: React.FC = () => {
               {/* Concentric expanding rings */}
               <div className="absolute -bottom-32 -right-32 hidden lg:block">
                 {[0, 1.5, 3, 4.5].map(d => (
-                  <div key={`ring-${d}`} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border rounded-full" style={{ borderColor: '#ADFF2F20', animation: `ring-expand 6s linear ${d}s infinite` }} />
+                  <div key={`ring-${d}`} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border rounded-full" style={{ borderColor: '#FF6B2B20', animation: `ring-expand 6s linear ${d}s infinite` }} />
                 ))}
               </div>
               {/* Orbiting glowing dots */}
               {[0, 1, 2].map(i => (
                 <div key={`hero-orb-${i}`} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 hidden lg:block" style={{ animation: `${i % 2 === 0 ? 'orbit-wide' : 'orbit-medium'} ${12 + i * 5}s linear ${i * 2}s infinite` }}>
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: ['#ADFF2F', '#FF6B2B', '#3b82f6'][i], opacity: 0.25, boxShadow: `0 0 10px ${['#ADFF2F', '#FF6B2B', '#3b82f6'][i]}60` }} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ background: ['#FF6B2B', '#FF6B2B', '#3b82f6'][i], opacity: 0.25, boxShadow: `0 0 10px ${['#FF6B2B', '#FF6B2B', '#3b82f6'][i]}60` }} />
                 </div>
               ))}
               {/* Straight horizontal light beams */}
               {[0, 1, 2].map(i => (
                 <div key={`beam-${i}`} className="absolute" style={{
                   top: `${18 + i * 28}%`, height: '1px', width: '200px',
-                  background: `linear-gradient(90deg, transparent, ${['#ADFF2F', '#FF6B2B', '#3b82f6'][i]}40, transparent)`,
+                  background: `linear-gradient(90deg, transparent, ${['#FF6B2B', '#FF6B2B', '#3b82f6'][i]}40, transparent)`,
                   animation: `traverse ${20 + i * 8}s linear ${i * 5}s infinite`,
                   '--t-op': '0.5',
                 } as React.CSSProperties} />
@@ -1053,12 +1053,12 @@ const App: React.FC = () => {
                     <>
                       <button onClick={() => setFilterCat('hit')}
                         className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
-                        style={filterCat === 'hit' ? { background: '#FF6B2B', color: '#0A0A0A', borderColor: '#FF6B2B' } : { background: '#FF6B2B10', color: '#FF6B2BAA', borderColor: '#FF6B2B30' }}>
+                        style={filterCat === 'hit' ? { background: '#FF6B2B', color: '#111110', borderColor: '#FF6B2B' } : { background: '#FF6B2B10', color: '#FF6B2BAA', borderColor: '#FF6B2B30' }}>
                         🔥 {lang === 'ru' ? 'ХИТЫ' : 'HITS'} [{hitCount}]
                       </button>
                       <button onClick={() => setFilterCat('discount')}
                         className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
-                        style={filterCat === 'discount' ? { background: '#3b82f6', color: '#0A0A0A', borderColor: '#3b82f6' } : { background: '#3b82f610', color: '#3b82f6AA', borderColor: '#3b82f630' }}>
+                        style={filterCat === 'discount' ? { background: '#3b82f6', color: '#111110', borderColor: '#3b82f6' } : { background: '#3b82f610', color: '#3b82f6AA', borderColor: '#3b82f630' }}>
                         🏷️ {lang === 'ru' ? 'СКИДКИ' : 'SALE'} [{discountCount}]
                       </button>
                     </>
@@ -1071,7 +1071,7 @@ const App: React.FC = () => {
                     <button key={cat.id} onClick={() => setFilterCat(cat.id)}
                       className={`px-4 py-2 text-[10px] font-bold tracking-wider transition-all clip-badge-sm border`}
                       style={filterCat === cat.id
-                        ? { background: cat.color, color: '#0A0A0A', borderColor: cat.color }
+                        ? { background: cat.color, color: '#111110', borderColor: cat.color }
                         : { background: `${cat.color}10`, color: `${cat.color}AA`, borderColor: `${cat.color}30` }
                       }>
                       {(lang === 'ru' ? cat.name : cat.nameEn).toUpperCase()} [{count}]
@@ -2518,7 +2518,7 @@ const ProductCard: React.FC<{
 }> = ({ product, lang, t, onClick, onInquiry, categories }) => {
   const savings = product.marketAverage - product.price;
   const savingsPercent = Math.round((savings / product.marketAverage) * 100);
-  const catColor = categories.find(c => c.id === product.category)?.color || '#ADFF2F';
+  const catColor = categories.find(c => c.id === product.category)?.color || '#FF6B2B';
 
   return (
     <div className="relative bg-dark-2/90 border border-white/5 hover:border-white/20 transition-all group cursor-pointer card-hover overflow-hidden"
@@ -2610,7 +2610,7 @@ const ProductCard: React.FC<{
               <div className="absolute inset-y-0 left-0 transition-all duration-700 z-[2]"
                 style={{
                   width: `${Math.round((product.price / product.marketAverage) * 100)}%`,
-                  background: 'linear-gradient(90deg, #5ddd2f, #adff2f)',
+                  background: 'linear-gradient(90deg, #CC5522, #FF6B2B)',
                 }} />
               {/* Divider line */}
               <div className="absolute inset-y-0 z-[3]"
@@ -2639,7 +2639,7 @@ const ProductCard: React.FC<{
                   <div className="absolute inset-y-0 left-0 transition-all duration-700 z-[2]"
                     style={{
                       width: `${ourPctOfLow}%`,
-                      background: 'linear-gradient(90deg, #5ddd2f, #adff2f)',
+                      background: 'linear-gradient(90deg, #CC5522, #FF6B2B)',
                     }} />
                   <div className="absolute inset-y-0 z-[3]"
                     style={{ left: `${ourPctOfLow}%`, width: '1px', background: '#fff', boxShadow: '0 0 6px rgba(255,255,255,0.5)' }} />
@@ -2684,7 +2684,7 @@ const ProductDetailPage: React.FC<{
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const savings = product.marketAverage - product.price;
   const savingsPercent = Math.round((savings / product.marketAverage) * 100);
-  const catColor = categories.find(c => c.id === product.category)?.color || '#ADFF2F';
+  const catColor = categories.find(c => c.id === product.category)?.color || '#FF6B2B';
   useEffect(() => {
     const title = lang === 'ru' ? product.name : product.nameEn;
     const desc = lang === 'ru' ? product.description : product.descriptionEn;
@@ -2887,7 +2887,7 @@ const ProductDetailPage: React.FC<{
                 <div className="absolute inset-y-0 left-0 transition-all duration-700 z-[2] flex items-center justify-center"
                   style={{
                     width: `${Math.round((product.price / product.marketAverage) * 100)}%`,
-                    background: 'linear-gradient(90deg, #5ddd2f, #adff2f)',
+                    background: 'linear-gradient(90deg, #CC5522, #FF6B2B)',
                     boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.2)'
                   }}>
                   <span className="text-[9px] font-black text-dark drop-shadow-sm">{fmt(product.price)}</span>
@@ -2925,7 +2925,7 @@ const ProductDetailPage: React.FC<{
                     <div className="absolute inset-y-0 left-0 transition-all duration-700 z-[2] flex items-center justify-center"
                       style={{
                         width: `${ourPctOfLow}%`,
-                        background: 'linear-gradient(90deg, #5ddd2f, #adff2f)',
+                        background: 'linear-gradient(90deg, #CC5522, #FF6B2B)',
                         boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.15)'
                       }}>
                       <span className="text-[7px] font-black text-dark">{fmt(product.price)}</span>
@@ -3114,7 +3114,7 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
     .filter(d => d.value > 0)
     .sort((a, b) => b.value - a.value);
 
-  const COLORS = ['#ADFF2F', '#3b82f6', '#FF6B2B', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#eab308'];
+  const COLORS = ['#FF6B2B', '#3b82f6', '#FF6B2B', '#8b5cf6', '#ec4899', '#14b8a6', '#f59e0b', '#eab308'];
 
   const detailedProductStats = Array.from(productStats.entries()).map(([productId, stat]) => ({
     product: products.find(p => p.id === productId) || { name: 'Unknown', id: productId } as Product,
@@ -3251,7 +3251,7 @@ const AccountingDashboard: React.FC<{ orders: Order[], products: Product[], t: T
                         <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={12}>
                           {barData.map((entry, index) => (
                             <Cell key={`cell-${index}`} fill={
-                              entry.name === 'Касса' || entry.name === 'Cash' ? '#ADFF2F' : 
+                              entry.name === 'Касса' || entry.name === 'Cash' ? '#FF6B2B' : 
                               entry.name === 'Кредит' || entry.name === 'Credit' ? '#3b82f6' : 
                               entry.name === 'Долг' || entry.name === 'Debt' ? '#ef4444' : '#8b5cf6'
                             } />

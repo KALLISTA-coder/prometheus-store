@@ -3,27 +3,27 @@
 @theme {
   --font-mono: 'JetBrains Mono', monospace;
   --font-sans: 'Inter', sans-serif;
-  --color-volt: #ADFF2F;
-  --color-volt-dim: #7BBF1A;
-  --color-cyber: #FF6B2B;
-  --color-cyber-dim: #CC5522;
+  --color-volt: #FF6B2B;
+  --color-volt-dim: #CC5522;
+  --color-cyber: #D4A853;
+  --color-cyber-dim: #B8923F;
   --color-panel: #F0F0F0;
-  --color-dark: #0A0A0A;
-  --color-dark-2: #111111;
-  --color-dark-3: #1A1A1A;
-  --color-dark-4: #222222;
-  --color-mid: #333333;
+  --color-dark: #111110;
+  --color-dark-2: #1A1918;
+  --color-dark-3: #222120;
+  --color-dark-4: #2A2928;
+  --color-mid: #3A3836;
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: #333 #0A0A0A;
+  scrollbar-color: #3A3836 #111110;
 }
 
 
 
 body {
-  background: #0A0A0A;
+  background: #111110;
   font-family: 'JetBrains Mono', monospace;
   -webkit-font-smoothing: antialiased;
 }
@@ -80,8 +80,8 @@ body {
 }
 
 @keyframes glow-border {
-  0%, 100% { border-color: rgba(173, 255, 47, 0.2); }
-  50% { border-color: rgba(173, 255, 47, 0.6); }
+  0%, 100% { border-color: rgba(255, 107, 43, 0.2); }
+  50% { border-color: rgba(255, 107, 43, 0.6); }
 }
 
 @keyframes dash-march {
@@ -294,27 +294,27 @@ body {
 .diagonal-lines {
   background-image: repeating-linear-gradient(
     45deg, transparent, transparent 2px,
-    rgba(173, 255, 47, 0.06) 2px, rgba(173, 255, 47, 0.06) 4px
+    rgba(255, 107, 43, 0.06) 2px, rgba(255, 107, 43, 0.06) 4px
   );
 }
 
 .grid-bg {
   background-image:
-    linear-gradient(to right, rgba(173, 255, 47, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(173, 255, 47, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 107, 43, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 107, 43, 0.04) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
 .grid-bg-dense {
   background-image:
-    linear-gradient(to right, rgba(173, 255, 47, 0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(173, 255, 47, 0.08) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 107, 43, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 107, 43, 0.08) 1px, transparent 1px);
   background-size: 20px 20px;
 }
 
 /* Dot matrix pattern */
 .dot-matrix-bg {
-  background-image: radial-gradient(circle, rgba(173,255,47,0.05) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(255,107,43,0.05) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
@@ -353,11 +353,11 @@ button:active { transform: scale(0.97); }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 120% 80% at 20% 50%, var(--marble-color, rgba(173,255,47,0.04)) 0%, transparent 60%),
-    radial-gradient(ellipse 80% 120% at 80% 30%, var(--marble-color, rgba(173,255,47,0.04)) 0%, transparent 50%),
-    radial-gradient(ellipse 100% 60% at 50% 80%, var(--marble-color, rgba(173,255,47,0.03)) 0%, transparent 55%),
-    radial-gradient(ellipse 60% 100% at 30% 20%, rgba(255,255,255,0.015) 0%, transparent 50%),
-    radial-gradient(ellipse 70% 90% at 70% 70%, rgba(255,255,255,0.01) 0%, transparent 45%);
+    radial-gradient(ellipse 120% 80% at 20% 50%, var(--marble-color, rgba(255,107,43,0.04)) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 120% at 80% 30%, var(--marble-color, rgba(255,107,43,0.04)) 0%, transparent 50%),
+    radial-gradient(ellipse 100% 60% at 50% 80%, var(--marble-color, rgba(255,107,43,0.03)) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 100% at 30% 20%, rgba(255,248,240,0.015) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 90% at 70% 70%, rgba(255,248,240,0.01) 0%, transparent 45%);
   background-size: 200% 300%;
   animation: marble-flow 20s linear infinite;
   pointer-events: none;

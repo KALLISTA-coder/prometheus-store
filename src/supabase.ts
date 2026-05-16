@@ -95,7 +95,7 @@ function dbToCategory(row: any): Category {
     name: row.name,
     nameEn: row.name_en || '',
     count: row.count || 0,
-    color: row.color || '#ADFF2F',
+    color: row.color || '#FF6B2B',
   };
 }
 

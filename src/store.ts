@@ -142,7 +142,7 @@ export const initialSettings: SiteSettings = {
 export const initialCategories: Category[] = [
   { id: 'chairs', name: 'Кресла', nameEn: 'Chairs', count: 2, color: '#FF6B2B' },
   { id: 'climate', name: 'Климат', nameEn: 'Climate', count: 2, color: '#00BFFF' },
-  { id: 'bikes', name: 'Велосипеды', nameEn: 'Bikes', count: 1, color: '#ADFF2F' },
+  { id: 'bikes', name: 'Велосипеды', nameEn: 'Bikes', count: 1, color: '#FF6B2B' },
   { id: 'gadgets', name: 'Планшеты', nameEn: 'Tablets', count: 1, color: '#A855F7' },
 ];
 

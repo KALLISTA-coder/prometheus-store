@@ -15,7 +15,7 @@ export const PrometheusLogo: React.FC<{ size?: number }> = ({ size = 32 }) => (
     }} />
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none" style={{ position: 'relative', zIndex: 1 }}>
       <polygon points="8,25 92,25 50,92" fill="url(#lo-out)" opacity="0.9" />
-      <polygon points="22,32 78,32 50,78" fill="#0A0A0A" />
+      <polygon points="22,32 78,32 50,78" fill="#111110" />
       <polygon points="32,36 68,36 50,68" fill="url(#lo-ctr)" />
       <defs>
         <linearGradient id="lo-out" x1="0" y1="100" x2="100" y2="0">
